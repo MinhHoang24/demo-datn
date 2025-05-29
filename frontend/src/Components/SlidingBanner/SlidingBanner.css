@@ -1,0 +1,141 @@
+/* CSS cho phần chứa banner */
+.sliding-banner {
+    display: flex;
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    width: 100%;
+    height: 80vh; /* Chiếm toàn bộ chiều cao màn hình */
+    overflow: hidden; /* Ẩn phần thừa ra ngoài */
+    position: relative;
+    background: rgb(16, 122, 194);
+    margin-top: 80px;
+    padding-top: 10px;
+}
+
+/* CSS cho phần khối chứa slide */
+.block-sliding {
+    display: flex;
+    flex-direction: column;
+    width: 100%; /* Chiếm 80% chiều ngang màn hình */
+    max-width: 1200px; /* Giới hạn chiều rộng tối đa */
+    height: 100%; /* Chiếm toàn bộ chiều cao của phần cha */
+    overflow: hidden; /* Ẩn phần thừa ra ngoài */
+    position: relative;
+}
+
+/* CSS cho phần ảnh trong slide */
+.swiper-container.banner-top {
+    position: relative;
+    width: 100%; /* Đảm bảo slide chiếm toàn bộ chiều rộng */
+    height: 80%; /* Chiếm 50% chiều cao của block-sliding */
+    overflow: hidden;
+}
+
+.swiper-wrapper {
+    display: flex;
+    transition: transform 300ms ease-in-out;
+    width: 100%;
+}
+
+.swiper-slide-y {
+    position: relative;
+    flex: 0 0 100%; /* Đảm bảo mỗi slide chiếm 100% chiều rộng của container */
+    height: 100%; /* Chiếm toàn bộ chiều cao */
+}
+
+.swiper-slide-y img {
+    width: 100%; /* Ảnh chiếm toàn bộ chiều rộng */
+    height: 100%; /* Ảnh chiếm toàn bộ chiều cao */
+    object-fit: cover; /* Ảnh được phủ kín, không méo mó */
+}
+
+/* CSS cho phần nội dung phụ bên dưới ảnh */
+
+.swiper-container.sliding-content {
+    display: flex; /* Sử dụng flexbox để sắp xếp các phần tử */
+    justify-content: space-between; /* Đảm bảo khoảng cách đều giữa các phần tử */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    width: 100%; /* Chiếm toàn bộ chiều rộng container cha */
+}
+
+.swiper-wrapper {
+    display: flex; /* Đảm bảo các phần tử con nằm trong dòng */
+    width: 100%; /* Tổng chiều rộng của wrapper bằng container */
+}
+
+
+
+.swiper-slide div {
+    width: 100%; /* Nội dung bên trong slide chiếm hết chiều rộng slide */
+    text-align: center; /* Căn giữa văn bản */
+    padding: 5px;
+}
+
+
+.swiper-slide:hover {
+    flex: 1px 1px auto; 
+    transform: scale(1.07); /* Phóng to slide khi hover */
+    background-color:rgb(255, 255, 0); /* Đổi màu nền khi hover */
+    color: #4c3838; /* Đổi màu chữ khi hover */
+    z-index: 1; /* Đảm bảo phần tử được hiển thị phía trên */
+}
+
+
+.swiper-wrapper {
+    display: flex;
+    transition: transform 300ms ease-in-out;
+    width: 100%;
+    height: 100%;
+}
+
+.swiper-slide {
+    flex: 0 0 auto; /* Đảm bảo mỗi slide chiếm một không gian cố định */
+    padding: 10px;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd; /* Biên của slide */
+    border-radius: 8px; /* Bo góc */
+    cursor: pointer; /* Hiển thị con trỏ dạng tay khi di chuột */
+    text-align: center; /* Canh giữa văn bản */
+    transition: all 0.3s ease; /* Hiệu ứng mượt */
+}
+
+.swiper-slide-active {
+    background-color: #e0e0e0; /* Đổi màu khi slide được chọn */
+}
+
+/* CSS cho phần pagination */
+.swiper-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px; /* Khoảng cách giữa phần nội dung và pagination */
+    margin-bottom: 10px;
+}
+
+/* Định dạng các bullet của pagination */
+.swiper-pagination-bullet {
+    width: 12px;
+    height: 12px;
+    background-color: #bbb;
+    border-radius: 50%; /* Hình tròn */
+    margin: 0 5px;
+    cursor: pointer;
+}
+
+.swiper-pagination-bullet-active {
+    background-color: #333; /* Màu sắc khác khi được chọn */
+}
+
+/* Responsive điều chỉnh cho các màn hình nhỏ hơn */
+@media (max-width: 717px) {
+    .block-sliding {
+        width: 95%; /* Tăng chiều rộng của khối cho màn hình nhỏ */
+    }
+
+    .swiper-slide-y img {
+        object-fit: cover;
+    }
+
+    .swiper-slide {
+        padding: 8px;
+    }
+}

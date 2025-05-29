@@ -1,0 +1,17 @@
+.product-container {
+  position: relative;
+  border-radius: 8px;
+  display: block;
+  height: 100%;
+  margin: auto;
+  margin-top: 10px;
+  width: auto;
+  padding: 69px 20px 10px 20px;
+
+}
+@media (max-width: 1200px) {
+  .product-container {
+      max-width: 1200px !important;
+      width: 100% !important;
+  }
+}

@@ -1,0 +1,85 @@
+/* CSS cho popup */
+.chat-popup {
+    position: fixed;
+    bottom: 30px; /* Cách từ dưới lên */
+    right: 30px; /* Cách từ bên phải */
+    background-color: #ffffff;
+    border-radius: 15px;
+    min-height: 400px;
+    width: 350px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000; /* Đảm bảo popup nổi bật */
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+  }
+  
+  .chat-header {
+    background-color: #007bff;
+    color: #ffffff;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  
+  .chat-close-button {
+    background-color: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+  }
+  
+  .chat-body {
+    padding: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+  }
+  
+  .chat-footer {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #ffffff;
+    border-top: 1px solid #ddd;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+  }
+  
+  .chat-input {
+    flex-grow: 1;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    padding: 8px;
+    margin-right: 10px;
+    font-size: 14px;
+    resize: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+  
+  .chat-send-button {
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+  }
+  
+  .chat-send-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .chat-send-button:focus {
+    outline: none;
+  }

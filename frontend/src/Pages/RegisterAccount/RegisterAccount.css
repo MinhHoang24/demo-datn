@@ -1,0 +1,146 @@
+body {
+    font-family: Arial, sans-serif; /* Chọn font chữ */
+    background-color: #f0f4f8; /* Màu nền trang */
+    margin: 0;
+    padding: 0;
+}
+
+.register-container {
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-left: 0px;
+}
+
+.login-form {
+    width: auto;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 40px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
+    color: #1e0e4b;
+    
+}
+
+.app-name {
+    color: #007bff; /* Màu cho tên ứng dụng */
+}
+
+.subtitle {
+    font-size: 18px;
+    color: #1e0e4b;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-container {
+    
+    position: relative;
+}
+.input-container input {
+    width: 470px;
+}
+.select-container {
+    display: flex; /* Sử dụng flexbox */
+    gap: 10px; /* Khoảng cách giữa các select */
+}
+.select-container select {
+    height: 40px; /* Tăng chiều cao để dễ tương tác */
+    margin: 5px; /* Tăng khoảng cách giữa các select */
+    width: calc(33.33% - 10px); /* Đặt chiều rộng để ba select có thể nằm ngang */
+    border: 1px solid #ccc; /* Đường viền màu xám nhạt */
+    border-radius: 4px; /* Bo góc */
+    font-size: 16px; /* Kích thước chữ */
+    padding: 5px; /* Thêm khoảng đệm bên trong */
+    background-color: #f8f9fa; /* Màu nền nhạt */
+    transition: border-color 0.3s, background-color 0.3s; /* Hiệu ứng chuyển tiếp */
+}
+
+.select-container select:focus {
+    border-color: #007bff; /* Đổi màu viền khi select được chọn */
+    background-color: #ffffff; /* Đổi màu nền khi được chọn */
+    outline: none; /* Bỏ viền mặc định */
+}
+
+
+label {
+    display: block; /* Đảm bảo label chiếm toàn bộ chiều rộng */
+    margin-bottom: 5px; /* Khoảng cách giữa label và input */
+    color: #333; /* Màu chữ label */
+}
+
+input {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.login-form button {
+    margin-top: 25px;
+    background-color: rgb(255, 81, 0);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 15px;
+    font-size: 22px;
+    cursor: pointer;
+    width: 200px;
+    margin-left: 150px;
+}
+
+.login-form button:hover {
+   
+    transform: scale(1.05); /* Tăng kích thước một chút khi di chuột qua */
+}
+
+.signup-link {
+    text-align: center; /* Căn giữa chữ đăng nhập */
+    margin-top: 20px; /* Khoảng cách trên chữ đăng nhập */
+    font-size: 16px; /* Kích thước chữ */
+    color: #333; /* Màu chữ */
+    font-weight: bold; /* Đậm chữ */
+    position: relative; /* Vị trí tương đối để tạo hiệu ứng */
+}
+
+
+.signup-link a {
+    color: #007bff; /* Màu chữ cho liên kết */
+    text-decoration: none; /* Bỏ gạch chân cho liên kết */
+    transition: color 0.3s; /* Hiệu ứng chuyển tiếp cho màu chữ */
+}
+
+.signup-link a:hover {
+    color: #0056b3; /* Màu chữ khi di chuột qua */
+    text-decoration: underline; /* Gạch chân khi di chuột qua */
+}
+
+.signup-link::before {
+    
+    display: block; /* Hiển thị thành khối */
+    width: 50px; /* Chiều rộng đường kẻ */
+    height: 2px; /* Chiều cao đường kẻ */
+    background-color: #007bff; /* Màu của đường kẻ */
+    margin: 0 auto; /* Căn giữa đường kẻ */
+    margin-bottom: 5px; /* Khoảng cách dưới đường kẻ */
+}
+
+.error{
+    color: red;
+    font-size: 12px;
+    margin-top: 10px;
+}

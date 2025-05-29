@@ -1,0 +1,302 @@
+.cart-page{
+    margin-top: 70px;
+    padding: 50px;
+    justify-content: center;
+    
+}
+
+.cart-page h1 {
+    text-align: center; 
+    margin-top: 20px;
+    font-size: 28px;
+
+    margin-bottom: 20px;
+  
+}
+
+/* Container tổng cho từng mục trong giỏ hàng */
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+/* Checkbox */
+.cart-item-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+}
+
+.cart-item-checkbox input[type="checkbox"] {
+    display: none;
+}
+
+.cart-item-checkbox label {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    border: 2px solid #007bff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9f9f9;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.cart-item-checkbox input[type="checkbox"]:checked + label {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.cart-item-checkbox input[type="checkbox"]:checked + label::after {
+    content: "✔";
+    font-size: 14px;
+    color: white;
+}
+
+/* Thông tin sản phẩm */
+.cart-item-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+}
+
+.cart-item-info img {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Chi tiết sản phẩm */
+.cart-item-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.cart-item-details h2 {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.cart-item-details p {
+    font-size: 0.85rem;
+    color: #777;
+    margin: 0;
+}
+
+/* Điều khiển số lượng */
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity-controls button {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    background-color: #f9f9f9;
+    color: #555;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.quantity-controls button:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+/* Chi tiết giá và nút xóa */
+.price-details {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-direction: column;
+}
+
+.price-details p {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+}
+
+
+/* Footer của giỏ hàng */
+.bottom-order {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bottom-order button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.bottom-order button:first-child {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.bottom-order button:first-child:hover {
+    background-color: #0056b3;
+}
+
+.bottom-order button:last-child {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.bottom-order button:last-child:hover {
+    background-color: #1e7e34;
+}
+
+.cart-item-checkbox input[type="checkbox"] {
+    display: block; /* Đảm bảo checkbox hiển thị */
+    width: 20px; /* Định dạng kích thước của checkbox */
+    height: 20px; /* Định dạng kích thước của checkbox */
+    appearance: auto; /* Gỡ bỏ các style mặc định của trình duyệt */
+}
+/* Delete button */
+.delete-product {
+    background: #ff4444;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.delete-product:hover {
+    background-color: #cc0000;
+    transform: scale(1.1);
+}
+
+.delete-product svg {
+    font-size: 24px;
+}
+
+/* Bottom order buttons */
+.bottom-order {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #ddd;
+    padding-bottom: 20px;
+}
+
+.bottom-order button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.bottom-order button:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .cart-container {
+        padding: 10px;
+    }
+
+    .cart-item-info {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .cart-item-info img {
+        margin-bottom: 10px;
+    }
+
+    .quantity-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .bottom-order {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .bottom-order button {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
+.product-actions {
+    display: flex;
+    justify-content: space-between; /* Căn giữa các phần tử nếu cần */
+    align-items: center; /* Căn chỉnh theo chiều dọc */
+    gap: 10px; /* Khoảng cách giữa các phần tử */
+}
+
+.delete-product {
+    display: flex;
+    align-items: center; /* Căn chỉnh biểu tượng và văn bản theo chiều dọc */
+}
+
+.btn-go-home {
+    padding: 12px 24px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Thêm hiệu ứng mượt mà */
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3); /* Đổ bóng nhẹ cho nút */
+}
+
+.btn-go-home:hover {
+    background-color: #0056b3; /* Màu nền khi hover */
+    transform: translateY(-3px); /* Hiệu ứng nâng lên khi hover */
+}
+
+.btn-go-home:active {
+    background-color: #004085; /* Màu nền khi click */
+    transform: translateY(1px); /* Hiệu ứng bấm vào */
+}

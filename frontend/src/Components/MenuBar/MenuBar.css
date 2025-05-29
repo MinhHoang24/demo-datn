@@ -1,0 +1,140 @@
+.menu-bar {
+    width: 120vw;
+    background-color: rgb(227, 227, 227);
+    display: flex;
+    flex-direction: row;
+    margin-top: 5px;
+    margin-left: -10px !important;
+   
+  }
+  
+  .label-menu-bar {
+    margin-bottom: 5px;
+  }
+   
+  .label-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0px 40px;
+    width: 170px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    text-decoration: none; /* Bỏ gạch chân */
+  }
+  
+  .category-icon {
+    /* margin: 10px;
+    width: 20px;
+    height: 20px;
+    text-align: center; */
+    margin: 10px 10px 0 10px;
+
+  }
+  .icon {
+    height: 24px;
+    color: var(--main-color2);
+  }
+  
+  .item-link {
+    color: var(--main-color2);
+    font-size: 14px;
+    color: #343a40; /* Màu chữ mặc định */
+    text-decoration: none !important; /* Bỏ gạch chân */
+    transition: color 0.3s ease;
+
+  }
+
+  .right-icon {
+    color: var(--color3);
+  }
+  .right-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .header-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+  }
+
+  .item-content{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Hiệu ứng phóng to khi di chuột */
+.label-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0px 40px;
+  width: 170px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 8px;
+}
+
+.label-item:hover {
+  transform: scale(1.1); /* Phóng to */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Hiệu ứng đổ bóng */
+  background-color: rgba(0, 0, 0, 0.05); /* Màu nền khi hover */
+}
+
+/* Hiệu ứng khi nhấn */
+.label-item:active {
+  transform: scale(1.03); /* Giảm nhẹ phóng to */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); /* Giảm đổ bóng */
+  background-color: rgba(0, 0, 0, 0.1); /* Màu nền khi nhấn */
+  transition: transform 0.1s ease; /* Chuyển động nhanh hơn */
+}
+
+/* Hiệu ứng trên icon */
+.category-icon {
+  margin: 10px 10px 0 10px;
+  transition: color 0.3s ease, transform 0.3s ease;
+  color: #0056b3;
+}
+
+/* Thay đổi màu icon khi hover */
+.label-item:hover .category-icon {
+  color: #468dd9; /* Màu icon khi hover */
+  transform: scale(1.05); /* Phóng to icon */
+  transform: rotate(10deg); /* Xoay nhẹ khi hover */
+}
+
+/* Chữ trong mục */
+.item-link {
+  font-size: 14px;
+  color: #343a40; /* Màu chữ mặc định */
+  text-decoration: none !important;
+  transition: color 0.3s ease; /* Đồng bộ với toàn bộ item */
+}
+
+/* Thay đổi màu chữ khi hover */
+.label-item:hover .item-link {
+  color: #0056b3; /* Màu chữ khi hover */
+}
+
+/* Icon mũi tên bên phải */
+.right-icon {
+  font-size: 16px;
+  color: #1a5991; /* Màu mũi tên mặc định */
+  transition: transform 0.3s ease, color 0.3s ease; /* Đồng bộ với toàn bộ item */
+}
+
+/* Hiệu ứng mũi tên di chuyển khi hover */
+.label-item:hover .right-icon {
+  transform: translateX(5px); /* Di chuyển mũi tên sang phải */
+  color: #4190c5; /* Thay đổi màu mũi tên */
+}
+
+a, a:hover, a:focus, a:visited {
+  text-decoration: none !important;
+}

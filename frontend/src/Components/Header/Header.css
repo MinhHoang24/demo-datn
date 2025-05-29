@@ -1,0 +1,291 @@
+
+.header {
+  display: flex;
+  width: 100%;
+  height: 80px;
+  background: rgb(0, 101, 179);
+  top: 0;
+  z-index: 10000;
+  position: fixed;  
+  justify-content: space-between;
+  box-sizing: border-box;   
+
+}
+.menu {
+  width: 100%;
+  height: 100%;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  gap: 50px;
+  justify-content: space-around;
+  flex-grow: 1;
+}
+
+
+.logo {
+align-items: center;
+display: flex;
+flex-grow: 0;
+flex-shrink: 0;
+line-height: 1.5;
+position: relative;
+}
+
+.logo img {
+height: 46px;
+padding: 5px;
+}
+
+.about-name a {
+  text-decoration: none !important;
+  color: rgb(255, 255, 0);
+}
+
+
+
+.menu-list {
+  display: flex;
+  justify-content: space-between;
+  
+}
+
+.menu-list1 {
+  background: hsla(0, 0%, 100%, .2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 10px;
+  padding: 5px 20px 5px 20px;
+
+  
+  &:hover{
+    cursor: pointer;
+    background-color: #f0f0f0;
+    transform: scale(1.05); 
+    transition: background-color 0.3s, transform 0.3s; 
+    border-radius: 10px; 
+  }
+
+  &:hover .title-y,
+  &:hover .my-icon {
+    color: rgb(0, 101, 179); 
+  }
+
+}
+
+
+.about-contact {
+align-items: center;
+border-radius: 10px;
+cursor: pointer;
+display: flex;
+height: 50px;
+width: 100px;
+padding: 5px 5px;
+position: relative;
+text-decoration: none !important;
+}
+
+.about-delivery-tracking {
+align-items: center;
+border-radius: 10px;
+cursor: pointer;
+display: flex;
+height: 50px;
+width: 100px;
+padding: 5px 5px;
+position: relative;
+text-decoration: none !important;
+}
+.shop-cart {
+align-items: center;
+border-radius: 10px;
+cursor: pointer;
+display: flex;
+height: 50px;
+width: 70px;
+padding: 5px 5px;
+position: relative;
+text-decoration: none !important;
+}
+
+.box-content {
+color: #fff;
+font-size: 14px;
+line-height: 2.0;
+}
+.box-content .title-y {
+  line-height: 1.0;
+  width: 70px;
+  font-size: 15px;
+}
+.about-member .box-content .title-y {
+  padding: 10px;
+  }
+.my-icon {
+  position: relative;
+  color: white;
+  padding: 0px 8px 0px 0px;
+  transition:  transform 0.3s; 
+}
+
+.fa-h-24px {
+height: 24px;
+}
+.count {
+align-items: center;
+bottom: 15%;
+color: var(--main-color1);
+display: flex;
+font-size: 14px;
+font-weight: 700;
+height: 20px;
+justify-content: center;
+left: 8%;
+position: absolute;
+width: 20px;
+}
+
+.header-item.about-member {
+align-items: center;
+border-radius: 10px;
+cursor: pointer;
+display: flex;
+padding: 5px 5px;
+position: relative;
+text-decoration: none !important;
+background: hsla(0, 0%, 100%, .2);
+}
+.box-user{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: hsla(0, 0%, 100%, .2);
+  border-radius: 10px;
+  height: auto;
+  width: 50px;
+}
+
+.notification-icon{
+  background-color: transparent;
+  display: flex;
+  width: 60px;
+  color:#fff;
+  border-color: transparent;
+}
+.notification-icon:hover{
+  background-color: transparent;
+}
+.icon-noti{
+  height: 20px;
+}
+.unread-dot{
+  color: white;
+  width: 50%;
+  display: flex;
+}
+.tooltip-noti {
+  background: var(--color8);
+  color: #444;
+  padding: 20px;
+  border-radius: 8px;
+  position: absolute;
+  top: 5px; 
+  left: -50px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  z-index: 10;
+}
+
+@media only screen and (min-width: 1300px) {
+  .menu {
+      max-width: auto;
+      padding: 0 10px;
+      width: 100% !important;
+  }
+  .search input {
+    width: 300px;
+}
+}
+/* Tablet */
+@media only screen and (max-width: 1299px) and (min-width: 850px) {
+.search input {
+      width: 250px;
+  }
+  .about-contact{
+    display: none;
+  }
+.logo img{
+  display: none;
+ }
+  .menu{
+    gap: 35px;
+  }
+}
+
+/* Mobile*/
+
+@media screen and (max-width: 849px) {
+ .search input {
+      width: 200px;
+  }
+
+  .about-contact{
+    display: none;
+  }
+  .logo img{
+    display: none;
+   }
+  .menu-list1 .box-content{
+    display: none;
+  }
+  
+  .header-item.about-member{
+    display: none;
+  }
+  .box-content {
+    display: none;
+  }
+  .menu{
+    gap : 25px
+  }
+ 
+}
+
+.title-y{
+  line-height: 15px !important;
+  color: rgb(255, 255, 0);
+  text-decoration: none !important;
+  width: auto;
+}
+
+.login-btn:hover {
+  background-color: #f0f0f0; /* Thay đổi màu nền khi hover */
+  transform: scale(1.05); /* Phóng to phần tử */
+  transition: background-color 0.3s, transform 0.3s; /* Thêm hiệu ứng chuyển động mượt mà */
+  border-radius: 10px; 
+
+  .title-y{
+    color: #000;
+  }
+}
+.avatar{
+  width: 40px;
+}
+
+.my-icon:hover{
+  transform: scale(1.15);
+  transform: 0.3s; 
+}
+
+.notification-icon {
+  padding: 0 !important;
+  width: auto;
+  transition:  transform 0.3s; 
+}
+
+.notification-icon:hover{
+  transform: scale(1.15);
+  
+}

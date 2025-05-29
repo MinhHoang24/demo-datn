@@ -1,0 +1,171 @@
+* {
+    box-sizing: border-box;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#footer {
+    width: 100%;
+    background: rgb(0, 101, 179);
+    color: white;
+    font-family: 'Arial', sans-serif;
+}
+
+.footer {
+    width: 90%;
+    margin: auto;
+    padding: 2rem 0;
+}
+
+.footer-top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between; /* Tự động giãn đều các mục */
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.footer-top-name {
+    width: calc(20%);
+    text-align: left;
+}
+
+.footer-top-name h2 {
+    font-size: 28px;
+    color: #ffffff;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.footer-top-about,
+.footer-top-sp,
+.footer-top-delivery {
+    width: calc(25%); /* Đảm bảo các mục chiếm đều không gian */
+    text-align: left;
+    min-width: 200px; /* Ngăn mục quá nhỏ khi màn hình thu hẹp */
+}
+
+.footer-top-about h2,
+.footer-top-sp h2,
+.footer-top-delivery h2 {
+    text-transform: uppercase;
+    font-size: 20px;
+    color: #ffcc00;
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.footer-top ul {
+    list-style-type: none;
+}
+
+.footer-top li {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #cce7ff;
+    padding: 0.5rem 0;
+    font-weight: 500;
+}
+
+.footer-top li:hover {
+    color: #ffcc00;
+    transition: color 0.3s ease;
+}
+
+.footer-top-sp p {
+    font-size: 16px;
+    margin: 0.5rem 0;
+    color: #cce7ff;
+    font-weight: 400;
+}
+
+.footer-top-delivery ul li {
+    font-size: 16px;
+    color: #cce7ff;
+    line-height: 1.6;
+}
+
+.footer-bot {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.footer-bot p {
+    margin: 0.5rem 0;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 800px) {
+    .footer {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .footer-top {
+        flex-wrap: wrap;
+        justify-content: center; /* Giữ nội dung căn giữa khi xuống hàng */
+        gap: 1rem;
+    }
+
+    .footer-top-name {
+        width: 100%; /* Chiếm toàn bộ hàng đầu tiên */
+        text-align: center;
+    }
+
+    .footer-top-about,
+    .footer-top-sp,
+    .footer-top-delivery {
+        width: calc(33.33%); /* Chia đều 3 mục trên hàng ngang */
+    }
+
+    .footer-top-name h2 {
+        font-size: 22px;
+    }
+
+    .footer-top-about h2,
+    .footer-top-sp h2,
+    .footer-top-delivery h2 {
+        font-size: 18px;
+    }
+
+    .footer-top li {
+        font-size: 14px;
+    }
+}
+
+@media screen and (max-width: 400px) {
+    .footer {
+        padding: 1rem 0;
+    }
+
+    .footer-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .footer-top-name,
+    .footer-top-about,
+    .footer-top-sp,
+    .footer-top-delivery {
+        width: 100%;
+        text-align: left;
+    }
+
+    .footer-top-name h2 {
+        font-size: 20px;
+    }
+
+    .footer-top-about h2,
+    .footer-top-sp h2,
+    .footer-top-delivery h2 {
+        font-size: 16px;
+    }
+
+    .footer-top li {
+        font-size: 14px;
+    }
+}

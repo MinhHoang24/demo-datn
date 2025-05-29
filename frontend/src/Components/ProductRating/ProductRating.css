@@ -1,0 +1,21 @@
+.box-rating {
+    display: flex;
+    gap: 4px; /* Adjust space between stars */
+    align-items: center;
+}
+
+.star {
+font-size: 1.5rem; /* Adjust the size as needed */
+}
+
+.star.full {
+color: gold; /* Color for full stars */
+}
+
+.star.half {
+color: gold; /* Color for half stars */
+}
+
+.star.empty {
+color: gray; /* Color for empty stars */
+}
