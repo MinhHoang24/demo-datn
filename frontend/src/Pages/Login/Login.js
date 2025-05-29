@@ -96,7 +96,7 @@ export default function LoginPage() {
     return (
         <div className="container">
             <div className="login-form">
-                <div className="title">Chào mừng quay lại với <span className="app-name">TECH STORE</span></div>
+                <div className="title">Chào mừng quay lại với <span className="app-name">MH SHOP</span></div>
                 <div className="subtitle">Đăng nhập vào tài khoản của bạn</div>
                 <form onSubmit={handleSubmit}>
                     <div className="input-container">

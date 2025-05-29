@@ -82,13 +82,14 @@ const UserProfile = () => {
 
     const handleUpdateProfile = async () => {
         try {
-            await apiService.updateUserProfile(user.id, updatedUser);
+            await apiService.updateUserProfile(updatedUser);
             setUser({ ...user, ...updatedUser });
             setShowEditProfile(false);
         } catch (error) {
             console.error('Cập nhật thông tin thất bại', error);
         }
     };
+
 
     if (isLoading) {
         return <div style={{ paddingTop: "200px", marginLeft: "600px", marginBottom: "200px", fontSize: "25px" }}>Loading...</div>;
@@ -118,7 +119,7 @@ const UserProfile = () => {
             {/* Edit Profile Modal */}
             <Modal
                 title="Chỉnh sửa thông tin"
-                visible={showEditProfile}
+                open={showEditProfile}
                 onCancel={() => setShowEditProfile(false)}
                 footer={null}
             >
@@ -147,7 +148,7 @@ const UserProfile = () => {
             {/* Change Password Modal */}
             <Modal
                 title="Đổi mật khẩu"
-                visible={showChangePassword}
+                open={showChangePassword}
                 onCancel={() => setShowChangePassword(false)}
                 footer={null}
             >

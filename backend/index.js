@@ -22,8 +22,6 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
-const PORT = process.env.PORT || 5000;
-
 // Kết nối đến MongoDB Atlas
 connectDB();
 
@@ -45,6 +43,7 @@ app.use('/cart', cartRoutes);
 // Sử dụng routes comments
 app.use('/comments', commentRoutes); 
 
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server đang chạy trên cổng ${PORT}`);
 });

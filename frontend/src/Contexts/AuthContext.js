@@ -10,19 +10,20 @@ export const AuthProvider = ({ children }) => {
         try {
             const token = localStorage.getItem('authToken');
             if (token) {
-                setIsLoggedIn(true);
-                const storedUser = localStorage.getItem('user');
-                if (storedUser) {
-                    const parsedUser = JSON.parse(storedUser);
-                    if (parsedUser) {
-                        setUser(parsedUser);
-                    }
+            setIsLoggedIn(true);
+            const storedUser = localStorage.getItem('user');
+            if (storedUser && storedUser !== "undefined" && storedUser !== "null") {
+                const parsedUser = JSON.parse(storedUser);
+                if (parsedUser) {
+                setUser(parsedUser);
                 }
+            }
             }
         } catch (error) {
             console.error('Failed to parse user from localStorage', error);
         }
     }, []);
+
 
     const login = (user, token) => {
         setUser(user);

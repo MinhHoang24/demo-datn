@@ -69,11 +69,6 @@
     font-weight: 500;
 }
 
-.footer-top li:hover {
-    color: #ffcc00;
-    transition: color 0.3s ease;
-}
-
 .footer-top-sp p {
     font-size: 16px;
     margin: 0.5rem 0;

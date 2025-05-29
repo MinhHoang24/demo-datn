@@ -6,23 +6,24 @@ function Footer(props) {
             <div className="footer">
                 <div className="footer-top">
                     <div className="footer-top-name">
-                        <h2 style={{color:"rgb(243, 247, 10)"}}>HI TECH</h2>
+                        <h2 style={{color:"#ffcc00"}}>MHOANG</h2>
                     </div>
                     <div className="footer-top-about">
                         <h2>about</h2>
                         <ul>
                             <li>
-                            HI TECH là địa chỉ tin cậy cho mọi người khi tìm kiếm các sản phẩm điện máy và điện tử chất lượng cao.
+                            MHOANG là địa chỉ tin cậy cho mọi nhu cầu về máy ảnh và thiết bị quay chụp chất lượng cao.
                             </li>
                             <li>
-                            Với cam kết về chất lượng và dịch vụ chuyên nghiệp, chúng tôi luôn đảm bảo rằng mỗi khách hàng đều có trải nghiệm mua sắm tốt nhất khi đến với chúng tôi. Hãy ghé thăm cửa hàng của chúng tôi ngay hôm nay để khám phá thế giới công nghệ đầy sáng tạo và tiện ích!
+                            Với cam kết về sản phẩm chính hãng và dịch vụ tận tâm, chúng tôi mang đến trải nghiệm mua sắm chuyên nghiệp và hài lòng nhất. Ghé ngay MHOANG để khám phá thế giới máy ảnh và công nghệ đỉnh cao!
                             </li>
                         </ul>
                     </div>
                     <div className="footer-top-sp">
                         <h2>Always-on Support</h2>
-                        <p>- Support 039 6666 666 (07:00-21:00)</p>
-                        <p>- Delivery 039 6666 666 (07:00-21:00)</p>
+                        <p>- Phone/Zalo: 0966907473</p>
+                        <p>- Facebook: <a style={{ color: '#cce7ff', textDecoration: 'underline' }} href='https://www.facebook.com/littlemozart.mh'>Minh Hoang</a></p>
+                        <p>- Instagram: <a style={{ color: '#cce7ff', textDecoration: 'underline' }} href='https://www.instagram.com/hmoang22'>hmoang22</a></p>
                     </div>
                     <div className="footer-top-delivery">
                         <h2>Payment</h2>
@@ -31,7 +32,7 @@ function Footer(props) {
                                 Phương thức thanh toán: Thanh toán khi nhận hàng hoặc qua các cổng thanh toán trực tuyến như VNPay, Momo.
                             </li>
                             <li>
-                                Giao hàng: Miễn phí vận chuyển cho đơn hàng trên 500.000 VNĐ. Hỗ trợ giao hàng nhanh trong 24h tại các thành phố lớn.
+                                Giao hàng: Miễn phí vận chuyển cho đơn hàng trên 1.000.000 VNĐ. Hỗ trợ giao hàng nhanh trong 24h tại các thành phố lớn.
                             </li>
                             <li>
                                 Ưu đãi: Theo dõi các chương trình khuyến mãi và nhận ưu đãi độc quyền khi trở thành khách hàng thân thiết.

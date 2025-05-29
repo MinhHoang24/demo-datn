@@ -47,7 +47,7 @@ io.on('connection', (socket) => {
 });
 
 // Khởi động server trên cổng 5000 hoặc cổng được chỉ định trong biến môi trường
-const PORT = process.env.PORT || 5001;
-server.listen(PORT, () => {
-    console.log(`Server chat đang chạy trên cổng ${PORT}`);
+const CHAT_PORT = process.env.CHAT_PORT || 5001;
+server.listen(CHAT_PORT, () => {
+    console.log(`Server chat đang chạy trên cổng ${CHAT_PORT}`);
 });
