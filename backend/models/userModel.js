@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
     phoneNumber: { type: String, required: true, unique: true }, // Đảm bảo số điện thoại là duy nhất
     password: { type: String, required: true },
     diaChi: { type: String, required: true },
-    email: { type: String, unique: true, sparse: true },
+    email: { type: String, required: true, unique: true, sparse: true },
     role: { type: String, default: "user" }
 }, {
     timestamps: true, versionKey :false

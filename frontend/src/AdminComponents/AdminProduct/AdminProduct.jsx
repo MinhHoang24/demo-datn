@@ -120,11 +120,13 @@ const AdminProduct = () => {
     ),
     onFilter: (value, record) =>
       record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: (visible) => {
-      if (visible) {
-        setTimeout(() => searchInput.current?.select(), 100);
-      }
-    },
+      filterDropdownProps: {
+        onOpenChange: (visible) => {
+          if (visible) {
+            setTimeout(() => searchInput.current?.select(), 100);
+          }
+        }
+      },
     render: (text) =>
       searchedColumn === dataIndex ? (
         <Highlighter
@@ -271,7 +273,7 @@ const AdminProduct = () => {
         onCancel={() => setModalChild(null)}
         maskClosable={false}
         footer={null}
-        destroyOnClose={true}
+        destroyOnHidden={true}
         width="auto"
       >
         {modalChild}

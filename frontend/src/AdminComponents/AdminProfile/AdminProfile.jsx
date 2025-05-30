@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Button, Modal, Input, message, Spin, Card } from "antd";
 import apiService from "../../Api/Api";
 
@@ -26,8 +25,8 @@ const AdminProfile = () => {
           return;
         }
 
-        const response = await apiService.getAdminProfile()
-        console.log(response.data.admin)
+        const response = await apiService.getAdminProfile();
+        console.log(response.data.admin);
         setAdmin(response.data.admin);
         setUpdatedAdmin(response.data.admin); // Để sử dụng cho form cập nhật
       } catch (error) {
@@ -41,7 +40,7 @@ const AdminProfile = () => {
     fetchAdminData();
   }, []);
 
-  const handleUpdate = async () => {  
+  const handleUpdate = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("authToken");
@@ -51,8 +50,8 @@ const AdminProfile = () => {
         return;
       }
 
-      const response = await apiService.updateAdminProfile(updatedAdmin)
-      console.log(response.data.message)
+      const response = await apiService.updateAdminProfile(updatedAdmin);
+      console.log(response.data.message);
       setAdmin(response.data.admin);
       message.success("Cập nhật thông tin thành công!");
       setIsUpdateModalVisible(false);
@@ -79,7 +78,7 @@ const AdminProfile = () => {
         return;
       }
 
-      const response = await apiService.changeAdminPassword(passwords)
+      const response = await apiService.changeAdminPassword(passwords);
 
       message.success(response.data.message || "Đổi mật khẩu thành công!");
       setIsPasswordModalVisible(false);
@@ -118,7 +117,7 @@ const AdminProfile = () => {
   };
 
   return (
-    <div style={{ width: "100%", height:'100%' }}>
+    <div style={{ width: "100%", height: "100%" }}>
       {loading ? (
         <Spin size="large" />
       ) : (
@@ -130,28 +129,39 @@ const AdminProfile = () => {
           }
           extra={
             <>
-              <Button onClick={showUpdateModal} style={{ marginRight: "10px"}}>
+              <Button onClick={showUpdateModal} style={{ marginRight: "10px" }}>
                 Cập nhật thông tin
-              </Button> 
+              </Button>
               <Button onClick={showPasswordModal}>Đổi mật khẩu</Button>
             </>
           }
-          style={{ width: '70%', margin: "auto", height:'90%' }}
+          style={{ width: "70%", margin: "auto", height: "90%" }}
         >
-          <p><strong>Tên:</strong> {admin?.userName || "Chưa có thông tin"}</p>
-          <p><strong>Số điện thoại:</strong> {admin?.phoneNumber || "Chưa có thông tin"}</p>
-          <p><strong>Địa chỉ:</strong> {admin?.diaChi || "Chưa có thông tin"}</p>
+          <p>
+            <strong>Tên:</strong> {admin?.userName || "Chưa có thông tin"}
+          </p>
+          <p>
+            <strong>Số điện thoại:</strong> {admin?.phoneNumber || "Chưa có thông tin"}
+          </p>
+          <p>
+            <strong>Địa chỉ:</strong> {admin?.diaChi || "Chưa có thông tin"}
+          </p>
+          <p>
+            <strong>Email:</strong> {admin?.email || "Chưa có thông tin"}
+          </p>
         </Card>
       )}
 
       {/* Modal Cập nhật thông tin */}
       <Modal
         title={
-          <div style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px" }}>
+          <div
+            style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px" }}
+          >
             Cập nhật thông tin
           </div>
         }
-        visible={isUpdateModalVisible}
+        open={isUpdateModalVisible}
         onOk={handleUpdate}
         onCancel={handleCancelUpdate}
         confirmLoading={loading}
@@ -177,16 +187,26 @@ const AdminProfile = () => {
             onChange={(e) => handleChange("diaChi", e.target.value)}
           />
         </div>
+        <div style={{ marginBottom: "10px" }}>
+          <label>Email: </label>
+          <Input
+            type="email"
+            value={updatedAdmin.email || ""}
+            onChange={(e) => handleChange("email", e.target.value)}
+          />
+        </div>
       </Modal>
 
       {/* Modal Đổi mật khẩu */}
       <Modal
         title={
-          <div style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px" }}>
+          <div
+            style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px" }}
+          >
             Đổi mật khẩu
           </div>
         }
-        visible={isPasswordModalVisible}
+        open={isPasswordModalVisible}
         onOk={handlePasswordChange}
         onCancel={handleCancelPassword}
         confirmLoading={loading}
@@ -195,21 +215,27 @@ const AdminProfile = () => {
           <label>Mật khẩu hiện tại: </label>
           <Input.Password
             value={passwords.currentPassword}
-            onChange={(e) => setPasswords((prev) => ({ ...prev, currentPassword: e.target.value }))}
+            onChange={(e) =>
+              setPasswords((prev) => ({ ...prev, currentPassword: e.target.value }))
+            }
           />
         </div>
         <div style={{ marginBottom: "10px" }}>
           <label>Mật khẩu mới: </label>
           <Input.Password
             value={passwords.newPassword}
-            onChange={(e) => setPasswords((prev) => ({ ...prev, newPassword: e.target.value }))}
+            onChange={(e) =>
+              setPasswords((prev) => ({ ...prev, newPassword: e.target.value }))
+            }
           />
         </div>
         <div style={{ marginBottom: "10px" }}>
           <label>Xác nhận mật khẩu mới: </label>
           <Input.Password
             value={passwords.confirmPassword}
-            onChange={(e) => setPasswords((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+            onChange={(e) =>
+              setPasswords((prev) => ({ ...prev, confirmPassword: e.target.value }))
+            }
           />
         </div>
       </Modal>

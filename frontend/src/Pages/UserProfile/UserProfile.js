@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './UserProfile.css';
 import apiService from '../../Api/Api';
 import { Modal, Input, Button } from 'antd';
@@ -15,7 +15,8 @@ const UserProfile = () => {
     const [updatedUser, setUpdatedUser] = useState({
         userName: '',
         phoneNumber: '',
-        diaChi: ''
+        diaChi: '',
+        email: ''  // Thêm email vào state cập nhật
     });
 
     useEffect(() => {
@@ -32,7 +33,8 @@ const UserProfile = () => {
                     setUpdatedUser({
                         userName: response.data.user.userName,
                         phoneNumber: response.data.user.phoneNumber,
-                        diaChi: response.data.user.diaChi
+                        diaChi: response.data.user.diaChi,
+                        email: response.data.user.email || ''  // Lấy email
                     });
                 }
             } catch (error) {
@@ -48,8 +50,6 @@ const UserProfile = () => {
     const handleConfirmCurrentPassword = async () => {
         try {
             const phoneNumber = localStorage.getItem("phoneNumber");
-            console.log(phoneNumber)
-            
             const response = await apiService.loginUser({
                 phoneNumber: phoneNumber,
                 password: currentPassword
@@ -68,7 +68,6 @@ const UserProfile = () => {
     const handleChangePassword = async () => {
         try {
             await apiService.changePassword(currentPassword, newPassword);
-            
             setShowChangePassword(false);
             setIsCurrentPasswordConfirmed(false);
             setCurrentPassword('');
@@ -78,7 +77,6 @@ const UserProfile = () => {
             setError('Đổi mật khẩu thất bại');
         }
     };
-    
 
     const handleUpdateProfile = async () => {
         try {
@@ -89,7 +87,6 @@ const UserProfile = () => {
             console.error('Cập nhật thông tin thất bại', error);
         }
     };
-
 
     if (isLoading) {
         return <div style={{ paddingTop: "200px", marginLeft: "600px", marginBottom: "200px", fontSize: "25px" }}>Loading...</div>;
@@ -109,7 +106,7 @@ const UserProfile = () => {
                 <p><strong>Tên người dùng: </strong> {user.userName}</p>
                 <p><strong>Số điện thoại: </strong> {user.phoneNumber}</p>
                 <p><strong>Địa chỉ: </strong>{user.diaChi}</p>
-
+                <p><strong>Email: </strong>{user.email || 'Chưa cập nhật'}</p> {/* Hiển thị email */}
                 <div className="user-profile-buttons">
                     <Button type="primary" onClick={() => setShowEditProfile(true)}>Chỉnh sửa thông tin</Button>
                     <Button type="default" onClick={() => setShowChangePassword(true)}>Đổi mật khẩu</Button>
@@ -140,6 +137,13 @@ const UserProfile = () => {
                     onChange={(e) => setUpdatedUser({ ...updatedUser, diaChi: e.target.value })}
                     placeholder="Địa chỉ"
                     style={{ marginBottom: '10px' }}
+                />
+                <Input
+                    value={updatedUser.email}
+                    onChange={(e) => setUpdatedUser({ ...updatedUser, email: e.target.value })}
+                    placeholder="Email"
+                    style={{ marginBottom: '10px' }}
+                    type="email"
                 />
                 <Button type="primary" onClick={handleUpdateProfile} style={{ marginRight: '10px' }}>Lưu thay đổi</Button>
                 <Button onClick={() => setShowEditProfile(false)}>Hủy</Button>

@@ -107,7 +107,7 @@ exports.registerUser = async (req, res) => {
         });
     }
 
-    const { userName, phoneNumber, password, diaChi, role } = req.body;
+    const { userName, phoneNumber, password, diaChi = "", role, email } = req.body;
 
     try {
         // Kiểm tra xem người dùng đã tồn tại chưa
@@ -126,7 +126,8 @@ exports.registerUser = async (req, res) => {
             phoneNumber,
             password: hashedPassword,
             diaChi,
-            role
+            role,
+            email
         });
 
         await newUser.save();
@@ -141,7 +142,8 @@ exports.registerUser = async (req, res) => {
                 userName: newUser.userName,
                 phoneNumber: newUser.phoneNumber,
                 diaChi: newUser.diaChi,
-                role: newUser.role
+                role: newUser.role,
+                email: newUser.email
             }
         });
     } catch (error) {
@@ -153,37 +155,47 @@ exports.registerUser = async (req, res) => {
     }
 };
 
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 // Đăng nhập người dùng
 exports.loginUser = async (req, res) => {
-    console.log('Received login request:', req.body);
+    const { identifier, password } = req.body;
 
-    // Validate input data
-    const { error } = loginSchema.validate(req.body);
-    if (error) {
-        return res.status(400).json({ success: false, message: error.details.map(detail => detail.message).join(', ') });
-    }
-
-    const { phoneNumber, password } = req.body;
+    // Kiểm tra validate identifier và password (có thể dùng Joi hoặc thủ công)
 
     try {
-        const user = await User.findOne({ phoneNumber });
+        let user;
+        if (validateEmail(identifier)) {
+            user = await User.findOne({ email: identifier });
+        } else {
+            user = await User.findOne({ phoneNumber: identifier });
+        }
+
         if (!user) {
-            console.log('User not found');
             return res.status(200).json({ success: false, message: 'User not found' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            console.log('Invalid password');
             return res.status(200).json({ success: false, message: 'Invalid password' });
         }
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1002h' });
-        res.json({ success: true, token, userName: user.userName, role: user.role, phoneNumber:user.phoneNumber, userID: user._id });
-        console.log('Đăng nhập thành công! ', user.userName, token );
 
+        return res.json({
+            success: true,
+            token,
+            userName: user.userName,
+            role: user.role,
+            phoneNumber: user.phoneNumber,
+            email: user.email,
+            userID: user._id,
+        });
     } catch (error) {
         console.error('Error during login:', error);
-        res.status(500).json({ success: false, message: 'Lỗi máy chủ!' });
+        return res.status(500).json({ success: false, message: 'Lỗi máy chủ!' });
     }
 };
