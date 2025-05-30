@@ -60,6 +60,7 @@ const getAdminProfile = async (req, res) => {
               userName: admin.userName,
               phoneNumber: admin.phoneNumber,
               diaChi: admin.diaChi,
+              email: admin.email,
               role: admin.role,
           },
       });
@@ -72,47 +73,59 @@ const getAdminProfile = async (req, res) => {
 // Cập nhật thông tin admin
 const updateAdminProfile = async (req, res) => {
   try {
-      // Lấy dữ liệu từ request body
-      const { userName, phoneNumber, diaChi } = req.body;
+    // Lấy dữ liệu từ request body
+    const { userName, phoneNumber, diaChi, email } = req.body;
 
-      // Kiểm tra tên người dùng có hợp lệ không
-      if (!userName || userName.trim() === '') {
-          return res.status(400).json({ message: 'Tên người dùng là bắt buộc' });
+    // Kiểm tra tên người dùng có hợp lệ không
+    if (!userName || userName.trim() === '') {
+        return res.status(400).json({ message: 'Tên người dùng là bắt buộc' });
+    }
+
+    // Kiểm tra số điện thoại có hợp lệ không
+    const phoneRegex = /^\d{10,11}$/;
+    if (!phoneNumber || !phoneRegex.test(phoneNumber)) {
+        return res.status(400).json({ message: 'Số điện thoại phải có từ 10 đến 11 chữ số' });
+    }
+
+    // Kiểm tra địa chỉ có hợp lệ không
+    if (!diaChi || diaChi.trim() === '') {
+        return res.status(400).json({ message: 'Địa chỉ là bắt buộc' });
+    }
+
+    // Kiểm tra email hợp lệ (nếu cần)
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+          return res.status(400).json({ message: 'Email không hợp lệ' });
       }
+    }
 
-      // Kiểm tra số điện thoại có hợp lệ không
-      const phoneRegex = /^\d{10,11}$/;
-      if (!phoneNumber || !phoneRegex.test(phoneNumber)) {
-          return res.status(400).json({ message: 'Số điện thoại phải có từ 10 đến 11 chữ số' });
-      }
+    // Kiểm tra admin có tồn tại không
+    const adminId = req.userId;
+    const admin = await User.findById(adminId);
+    if (!admin) {
+        return res.status(404).json({ message: 'Admin không tồn tại' });
+    }
 
-      // Kiểm tra địa chỉ có hợp lệ không
-      if (!diaChi || diaChi.trim() === '') {
-          return res.status(400).json({ message: 'Địa chỉ là bắt buộc' });
-      }
+    // Cập nhật các trường thông tin admin
+    if (userName) admin.userName = userName;
+    if (phoneNumber) admin.phoneNumber = phoneNumber;
+    if (diaChi) admin.diaChi = diaChi;
+    if (email) admin.email = email;
 
-      // Kiểm tra admin có tồn tại không
-      const adminId = req.userId;
-      const admin = await User.findById(adminId);
-      if (!admin) {
-          return res.status(404).json({ message: 'Admin không tồn tại' });
-      }
-
-      // Cập nhật các trường thông tin admin
-      if (userName) admin.userName = userName;
-      if (phoneNumber) admin.phoneNumber = phoneNumber;
-      if (diaChi) admin.diaChi = diaChi;
-
-      // Lưu thông tin admin đã cập nhật
-      const updatedAdmin = await admin.save();
-      res.status(200).json({
-          message: 'Cập nhật thông tin admin thành công',
-          admin: updatedAdmin,
-      });
+    // Lưu thông tin admin đã cập nhật
+    const updatedAdmin = await admin.save();
+    res.status(200).json({
+        message: 'Cập nhật thông tin admin thành công',
+        admin: updatedAdmin,
+    });
   } catch (error) {
+    if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+      return res.status(400).json({ message: 'Email đã được sử dụng' });
+    }
       console.error('Lỗi khi cập nhật thông tin admin:', error);
       res.status(500).json({ message: 'Lỗi server khi cập nhật thông tin admin', error: error.message });
-  }
+    }
 };
 
 // Đổi mật khẩu admin

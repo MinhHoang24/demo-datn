@@ -43,6 +43,7 @@ const AdminProfile = () => {
   const handleUpdate = async () => {
     try {
       setLoading(true);
+      console.log('Dữ liệu cập nhật gửi lên backend:', updatedAdmin);
       const token = localStorage.getItem("authToken");
 
       if (!token) {
@@ -57,7 +58,11 @@ const AdminProfile = () => {
       setIsUpdateModalVisible(false);
     } catch (error) {
       console.error(error);
-      message.error("Cập nhật thông tin thất bại!");
+      if (error.response && error.response.data && error.response.data.message) {
+        message.error(error.response.data.message);
+      } else {
+        message.error("Cập nhật thông tin thất bại!");
+      }
     } finally {
       setLoading(false);
     }

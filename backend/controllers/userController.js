@@ -23,6 +23,7 @@ exports.getProfile = async (req, res) => {
 // Chỉnh sửa thông tin cá nhân
 exports.updateProfile = async (req, res) => {
     try {
+        console.log('Update profile body:', req.body);
         const userId = req.user.id;
         const { userName, diaChi, email } = req.body;
 
@@ -35,10 +36,11 @@ exports.updateProfile = async (req, res) => {
             });
         }
 
+        
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             { userName, diaChi, email },
-            { new: true } // Trả về đối tượng đã được cập nhật
+            { new: true }
         );
 
         if (!updatedUser) {
