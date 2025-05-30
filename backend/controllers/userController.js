@@ -23,11 +23,9 @@ exports.getProfile = async (req, res) => {
 // Chỉnh sửa thông tin cá nhân
 exports.updateProfile = async (req, res) => {
     try {
-        console.log('Update profile body:', req.body);
         const userId = req.user.id;
         const { userName, diaChi, email } = req.body;
 
-        // Validate input data
         const { error } = updateProfileSchema.validate(req.body);
         if (error) {
             return res.status(400).json({
@@ -36,10 +34,21 @@ exports.updateProfile = async (req, res) => {
             });
         }
 
-        
+        const updateFields = {};
+        if (userName !== undefined) updateFields.userName = userName;
+        if (diaChi !== undefined) updateFields.diaChi = diaChi;
+
+        if (email !== undefined) {
+            const emailExists = await User.findOne({ email, _id: { $ne: userId } });
+            if (emailExists) {
+                return res.status(400).json({ success: false, message: 'Email đã được sử dụng bởi người dùng khác.' });
+            }
+            updateFields.email = email;
+        }
+
         const updatedUser = await User.findByIdAndUpdate(
             userId,
-            { userName, diaChi, email },
+            updateFields,
             { new: true }
         );
 
@@ -52,9 +61,10 @@ exports.updateProfile = async (req, res) => {
             message: 'Profile updated successfully',
             user: updatedUser
         });
+        console.log(`User ${userName} cập nhật thông tin thành công.`);
     } catch (error) {
         console.error('Error updating user profile:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
 

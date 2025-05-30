@@ -41,11 +41,11 @@ const loginSchema = Joi.object({
     })
 });
 
-
 const updateProfileSchema = Joi.object({
     userName: Joi.string().min(3).max(30),
     diaChi: Joi.string().max(100),
-    email: Joi.string().email().max(50)
+    email: Joi.string().email().max(50),
+    phoneNumber: Joi.string().pattern(/^\d{10,11}$/),
 });
 
 const changePasswordSchema = Joi.object({
