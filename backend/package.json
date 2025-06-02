@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "start:both": "concurrently \"npm run dev\" \"npx nodemon server_chat.js\""
   },
   "keywords": [],
   "author": "",
