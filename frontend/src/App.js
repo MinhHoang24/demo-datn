@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { publicRoutes, privateRoutes } from './Routes/Routes';
 import { CartProvider } from './Contexts/CartContext';
 import { AuthProvider } from './Contexts/AuthContext';
+import "antd/dist/reset.css"; // "antd/dist/antd.css"
 
 function App() {
   return (

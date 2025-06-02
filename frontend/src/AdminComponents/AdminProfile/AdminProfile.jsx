@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Input, message, Spin, Card } from "antd";
+import { Button, Modal, Input, Spin, Card, notification } from "antd";
 import apiService from "../../Api/Api";
 
 const AdminProfile = () => {
@@ -21,17 +21,24 @@ const AdminProfile = () => {
         const token = localStorage.getItem("authToken");
 
         if (!token) {
-          message.error("Bạn cần phải đăng nhập!");
+          notification.error({
+            message: "Bạn cần phải đăng nhập!",
+            placement: "topRight",
+            duration: 5,
+          });
           return;
         }
 
         const response = await apiService.getAdminProfile();
-        console.log(response.data.admin);
         setAdmin(response.data.admin);
-        setUpdatedAdmin(response.data.admin); // Để sử dụng cho form cập nhật
+        setUpdatedAdmin(response.data.admin);
       } catch (error) {
         console.error(error);
-        message.error("Không thể lấy thông tin admin");
+        notification.error({
+          message: "Không thể lấy thông tin admin",
+          placement: "topRight",
+          duration: 5,
+        });
       } finally {
         setLoading(false);
       }
@@ -40,28 +47,36 @@ const AdminProfile = () => {
     fetchAdminData();
   }, []);
 
+  const openNotification = (type, message) => {
+    notification[type]({
+      message: message,
+      placement: "topRight",
+      duration: 5,
+      style: { zIndex: 9999999 },
+    });
+  };
+
   const handleUpdate = async () => {
     try {
       setLoading(true);
-      console.log('Dữ liệu cập nhật gửi lên backend:', updatedAdmin);
       const token = localStorage.getItem("authToken");
 
       if (!token) {
-        message.error("Bạn cần phải đăng nhập!");
+        openNotification("error", "Bạn cần phải đăng nhập!");
+        setLoading(false);
         return;
       }
 
       const response = await apiService.updateAdminProfile(updatedAdmin);
-      console.log(response.data.message);
       setAdmin(response.data.admin);
-      message.success("Cập nhật thông tin thành công!");
+      openNotification("success", "Cập nhật thông tin thành công!");
       setIsUpdateModalVisible(false);
     } catch (error) {
       console.error(error);
       if (error.response && error.response.data && error.response.data.message) {
-        message.error(error.response.data.message);
+        openNotification("error", error.response.data.message);
       } else {
-        message.error("Cập nhật thông tin thất bại!");
+        openNotification("error", "Cập nhật thông tin thất bại!");
       }
     } finally {
       setLoading(false);
@@ -70,7 +85,7 @@ const AdminProfile = () => {
 
   const handlePasswordChange = async () => {
     if (passwords.newPassword !== passwords.confirmPassword) {
-      message.error("Mật khẩu mới và xác nhận không khớp!");
+      openNotification("error", "Mật khẩu mới và xác nhận không khớp!");
       return;
     }
 
@@ -79,17 +94,18 @@ const AdminProfile = () => {
       const token = localStorage.getItem("authToken");
 
       if (!token) {
-        message.error("Bạn cần phải đăng nhập!");
+        openNotification("error", "Bạn cần phải đăng nhập!");
+        setLoading(false);
         return;
       }
 
       const response = await apiService.changeAdminPassword(passwords);
 
-      message.success(response.data.message || "Đổi mật khẩu thành công!");
+      openNotification("success", response.data.message || "Đổi mật khẩu thành công!");
       setIsPasswordModalVisible(false);
     } catch (error) {
       console.error(error);
-      message.error("Đổi mật khẩu thất bại!");
+      openNotification("error", "Đổi mật khẩu thất bại!");
     } finally {
       setLoading(false);
     }
@@ -105,7 +121,7 @@ const AdminProfile = () => {
 
   const handleCancelUpdate = () => {
     setIsUpdateModalVisible(false);
-    setUpdatedAdmin(admin); // Reset dữ liệu nếu hủy
+    setUpdatedAdmin(admin);
   };
 
   const handleCancelPassword = () => {
@@ -160,9 +176,7 @@ const AdminProfile = () => {
       {/* Modal Cập nhật thông tin */}
       <Modal
         title={
-          <div
-            style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px" }}
-          >
+          <div style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px" }}>
             Cập nhật thông tin
           </div>
         }
@@ -205,9 +219,7 @@ const AdminProfile = () => {
       {/* Modal Đổi mật khẩu */}
       <Modal
         title={
-          <div
-            style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px" }}
-          >
+          <div style={{ textAlign: "center", fontWeight: "bold", fontSize: "18px" }}>
             Đổi mật khẩu
           </div>
         }
