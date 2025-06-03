@@ -258,6 +258,7 @@ background: hsla(0, 0%, 100%, .2);
   color: rgb(255, 255, 0);
   text-decoration: none !important;
   width: auto;
+  margin: 0;
 }
 
 .login-btn:hover {

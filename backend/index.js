@@ -8,6 +8,7 @@ const cartRoutes = require('./routes/cartRoutes');
 const commentRoutes = require('./routes/commentRoutes')
 const cors = require('cors');
 const app = express();
+const path = require('path');
 require('dotenv').config();
 
 const corsOptions = {
@@ -33,6 +34,8 @@ app.use('/admin', adminRoutes);
 
 // Sử dụng routes product
 app.use('/product', productRoutes);
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Sử dụng routes order
 app.use('/orders', orderRoutes); 

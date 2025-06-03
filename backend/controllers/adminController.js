@@ -4,7 +4,47 @@ const Order = require('../models/orderModel')
 const { validateProduct } = require('../validation/product'); 
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
+
+// Cấu hình multer (nên để ở ngoài hàm, chỉ khởi tạo 1 lần)
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '..', 'uploads');
+
+    // Tạo thư mục uploads nếu chưa tồn tại
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
+
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    // Tạo tên file tránh trùng, ví dụ: 1625489012345.jpg
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage });
+
+// Hàm xử lý upload ảnh
+const uploadImage = (req, res) => {
+  // Dùng middleware multer để xử lý file upload
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      console.error('Lỗi khi upload ảnh:', err);
+      return res.status(500).json({ message: 'Lỗi khi upload ảnh', error: err.message });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: 'Không có file được upload' });
+    }
+
+    // Trả về đường dẫn public để frontend dùng
+    const imageUrl = `/uploads/${req.file.filename}`;
+    res.status(200).json({ url: imageUrl });
+  });
+};
 
 
 const getAdminDashboard = (req, res) => {
@@ -330,4 +370,10 @@ const updateOrderStatus = async (req, res) => {
 
 
 
-module.exports = { getAdminDashboard, getAdminProfile, updateAdminProfile, changeAdminPassword, manageUsers, manageProducts, deleteUser, createProduct, deleteProduct, updateProduct, getAllOrders, updateOrderStatus };
+module.exports = { 
+  getAdminDashboard, getAdminProfile, updateAdminProfile, 
+  changeAdminPassword, manageUsers, manageProducts, 
+  deleteUser, createProduct, deleteProduct, 
+  updateProduct, getAllOrders, updateOrderStatus,
+  uploadImage,
+};

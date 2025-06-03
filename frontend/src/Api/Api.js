@@ -98,7 +98,7 @@ const apiService = {
     apiInstance.put("/admin/order/update-status", { orderId, newStatus }),
 
   uploadImage: (formData) => 
-  apiInstance.post("/upload/image", formData, {
+  apiInstance.post("/admin/upload/image", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   }),
 };

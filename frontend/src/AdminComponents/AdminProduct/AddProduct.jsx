@@ -11,21 +11,18 @@ import {
   message,
   Upload,
   Image,
+  Spin,
 } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import apiService from "../../Api/Api";
 
-const getBase64 = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });
-
 const AddProduct = ({ setModalChild, handleRefresh }) => {
   const [variants, setVariants] = useState([]);
-  const [productImage, setProductImage] = useState(null);
+  const [productImagePreview, setProductImagePreview] = useState(null); // preview ảnh hãng
+  const [brandImageFile, setBrandImageFile] = useState(null); // file ảnh hãng
+  const [uploading, setUploading] = useState(false); // trạng thái loading khi submit
+
+  const [variantsFiles, setVariantsFiles] = useState({}); // lưu file ảnh biến thể theo key
 
   const onFinishFailed = (errorInfo) => {
     console.log("Failed:", errorInfo);
@@ -34,12 +31,18 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
   const addVariant = () => {
     setVariants([
       ...variants,
-      { key: Date.now(), color: "", quantity: "", sale: 0, image: "" },
+      { key: Date.now(), color: "", quantity: "", sale: 0, imageUrl: "" },
     ]);
   };
 
   const removeVariant = (key) => {
     setVariants(variants.filter((variant) => variant.key !== key));
+    // Xóa file ảnh tương ứng
+    setVariantsFiles((prev) => {
+      const newFiles = { ...prev };
+      delete newFiles[key];
+      return newFiles;
+    });
   };
 
   const handleVariantChange = (key, field, value) => {
@@ -50,7 +53,7 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
     );
   };
 
-  // Giả định có API upload ảnh trả về url { url: "..." }
+  // Hàm upload 1 file ảnh lên server, trả về url ảnh
   const uploadImageToServer = async (file) => {
     try {
       const formData = new FormData();
@@ -65,39 +68,43 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
 
   const onFinish = async (values) => {
     try {
+      setUploading(true);
+
+      // Upload ảnh hãng nếu có
+      let brandImageUrl = values.brand?.image || "";
+      if (brandImageFile) {
+        brandImageUrl = await uploadImageToServer(brandImageFile);
+      }
+
+      // Upload ảnh từng biến thể nếu có file mới
+      const variantsProcessed = [];
+      for (const variant of variants) {
+        let imageUrl = variant.imageUrl || "";
+        if (variantsFiles[variant.key]) {
+          imageUrl = await uploadImageToServer(variantsFiles[variant.key]);
+        }
+        variantsProcessed.push({
+          color: variant.color || "default",
+          quantity: variant.quantity || 0,
+          sale: variant.sale || 0,
+          image: imageUrl,
+        });
+      }
+
       const data = {
         name: values.name || "",
         category: values.category || "",
         brand: {
           name: values.brand?.name || "",
-          image: values.brand?.image || "",
+          image: brandImageUrl,
         },
         description: values.description ? values.description.split("\n") : [],
         specifications: values.specifications
           ? values.specifications.split("\n")
           : [],
         price: values.price || 0,
-        variants: [],
+        variants: variantsProcessed,
       };
-
-      // Xử lý upload ảnh từng biến thể nếu có base64
-      const variantsProcessed = [];
-      for (const variant of variants) {
-        let imageUrl = variant.image;
-        if (variant.image && variant.image.startsWith("data:")) {
-          // là base64, upload lên server
-          // chuyển base64 sang Blob
-          const blob = await fetch(variant.image).then((r) => r.blob());
-          imageUrl = await uploadImageToServer(blob);
-        }
-        variantsProcessed.push({
-          color: variant.color || "default",
-          quantity: variant.quantity || 0,
-          sale: variant.sale || 0,
-          image: imageUrl || "",
-        });
-      }
-      data.variants = variantsProcessed;
 
       console.log("Dữ liệu gửi lên server:", data);
 
@@ -107,6 +114,8 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
       setModalChild(null);
     } catch (e) {
       message.error(e.message || "Đã xảy ra lỗi khi thêm sản phẩm");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -148,7 +157,7 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
             >
               <Input />
             </Form.Item>
-            <Form.Item label="Nhà sản xuất">
+            <Form.Item label="Nhà sản xuất" required>
               <Row justify="center">
                 <Col span={16}>
                   <Form.Item
@@ -167,19 +176,40 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
                     <Input />
                   </Form.Item>
                   <Form.Item
-                    label="Url ảnh"
-                    name={["brand", "image"]}
+                    label="Ảnh hãng"
                     labelCol={{ span: 5 }}
                     wrapperCol={{ span: 20 }}
                     style={{
                       marginBottom: 0,
                     }}
                   >
-                    <Input
-                      onChange={(e) => {
-                        setProductImage(e.target.value);
+                    <Upload
+                      listType="picture-card"
+                      showUploadList={false}
+                      beforeUpload={(file) => {
+                        setBrandImageFile(file);
+                        const reader = new FileReader();
+                        reader.readAsDataURL(file);
+                        reader.onload = () => setProductImagePreview(reader.result);
+                        return false; // chặn upload tự động
                       }}
-                    />
+                    >
+                      {productImagePreview ? (
+                        <img
+                          src={productImagePreview}
+                          alt="brand"
+                          style={{
+                            width: "100%",
+                            borderRadius: "10px",
+                          }}
+                        />
+                      ) : (
+                        <div>
+                          <PlusOutlined />
+                          <div style={{ marginTop: 8 }}>Upload</div>
+                        </div>
+                      )}
+                    </Upload>
                   </Form.Item>
                 </Col>
                 <Col
@@ -188,21 +218,7 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
                     display: "flex",
                     justifyContent: "center",
                   }}
-                >
-                  {productImage && (
-                    <Image
-                      height={100}
-                      width={100}
-                      style={{
-                        objectFit: "contain",
-                        borderRadius: "10px",
-                        border: "1px solid #ccc",
-                      }}
-                      src={productImage}
-                      fallback="data:image/png;base64,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"
-                    />
-                  )}
-                </Col>
+                />
               </Row>
             </Form.Item>
             <Form.Item
@@ -267,16 +283,22 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
                       <Upload
                         listType="picture-card"
                         showUploadList={false}
-                        beforeUpload={async (file) => {
-                          const base64 = await getBase64(file);
-                          handleVariantChange(variant.key, "image", base64);
+                        beforeUpload={(file) => {
+                          setVariantsFiles((prev) => ({
+                            ...prev,
+                            [variant.key]: file,
+                          }));
+                          const reader = new FileReader();
+                          reader.readAsDataURL(file);
+                          reader.onload = () =>
+                            handleVariantChange(variant.key, "imageUrl", reader.result);
                           return false; // chặn upload tự động
                         }}
                       >
-                        {variant.image ? (
+                        {variant.imageUrl ? (
                           <img
-                            src={variant.image}
-                            alt="avatar"
+                            src={variant.imageUrl}
+                            alt="variant"
                             style={{ width: "100%" }}
                           />
                         ) : (
@@ -315,10 +337,7 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
                       />
                     </Form.Item>
                   </Col>
-                  <Col
-                    span={2}
-                    style={{ display: "flex", alignItems: "center" }}
-                  >
+                  <Col span={2} style={{ display: "flex", alignItems: "center" }}>
                     <Button
                       type="dashed"
                       onClick={() => removeVariant(variant.key)}
@@ -339,6 +358,7 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
             </Button>
           </Col>
         </Row>
+
         <Form.Item
           wrapperCol={{
             offset: 21,
@@ -347,10 +367,10 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
           style={{ marginBottom: 0 }}
         >
           <Space>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={uploading}>
               OK
             </Button>
-            <Button type="default" onClick={() => setModalChild(null)}>
+            <Button type="default" onClick={() => setModalChild(null)} disabled={uploading}>
               Cancel
             </Button>
           </Space>

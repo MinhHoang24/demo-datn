@@ -3,26 +3,6 @@ const { validateProduct } = require('../validation/product');
 const Comment = require('../models/commentModel');
 const Rating = require('../models/ratingModel');
 
-// Example route to create a new product
-const createProduct = async (req, res) => {
-  const { error } = validateProduct(req.body);
-
-  if (error) {
-    return res.status(400).json({
-      message: "Validation failed",
-      details: error.details
-    });
-  }
-
-  try {
-    const newProduct = new ProductModel(req.body);
-    await newProduct.save();
-    res.status(201).json({ message: 'Product created successfully', product: newProduct });
-  } catch (err) {
-    res.status(500).json({ message: 'Error saving product', error: err.message });
-  }
-};
-
 // Route to get all products
 const getProducts = async (req, res) => {
   try {
@@ -163,4 +143,4 @@ const getRelatedProducts = async (req, res) => {
 };
 
 
-module.exports = {createProduct, getProducts, getProductById, addReview, getComments, getRelatedProducts };
+module.exports = { getProducts, getProductById, addReview, getComments, getRelatedProducts };
