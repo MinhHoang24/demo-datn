@@ -3,9 +3,13 @@ import { Link } from 'react-router-dom'
 import './MenuBar.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons'
-import { HiAdjustmentsHorizontal } from "react-icons/hi2";
-import { FaCamera } from "react-icons/fa";
-import { RiCameraLensFill } from "react-icons/ri";
+import { PiTelevision } from "react-icons/pi";
+import { FaTools } from "react-icons/fa";
+import { IoPhonePortraitOutline } from "react-icons/io5";
+import { FaLaptop } from "react-icons/fa";
+import { CiHeadphones } from "react-icons/ci";
+import { FaKeyboard } from "react-icons/fa";
+import { FaMouse } from "react-icons/fa";
 function MenuBar() {
   return (
     <>
@@ -15,7 +19,7 @@ function MenuBar() {
             <div className="label-item">
               <div className="item-content">
                 <div className="category-icon">
-                  <FaCamera style={{fontSize:'27px'}}/>
+                  <IoPhonePortraitOutline style={{fontSize:'27px'}}/>
                 </div>
                 <span className='item-link'>Dien Thoai</span>
               </div>
@@ -30,7 +34,7 @@ function MenuBar() {
             <div className="label-item">
               <div className="item-content">
                 <div className="category-icon">
-                  <RiCameraLensFill style={{fontSize:'27px'}}/>
+                  <FaLaptop style={{fontSize:'27px'}}/>
                 </div>
                 <span className='item-link'>Laptop</span>
               </div>
@@ -45,7 +49,7 @@ function MenuBar() {
             <div className="label-item">
               <div className="item-content">
                 <div className="category-icon">
-                <HiAdjustmentsHorizontal style={{fontSize:'27px'}} />
+                <CiHeadphones style={{fontSize:'27px'}} />
                 </div>
                 <span style={{textDecoration:'none'}} className='item-link'>Tai nghe</span>
               </div> 
@@ -60,7 +64,7 @@ function MenuBar() {
             <div className="label-item">
               <div className="item-content">
                 <div className="category-icon">
-                  <FaCamera style={{fontSize:'27px'}}/>
+                  <FaKeyboard style={{fontSize:'27px'}}/>
                 </div>
                 <span className='item-link'>Ban phim</span>
               </div>
@@ -75,7 +79,7 @@ function MenuBar() {
             <div className="label-item">
               <div className="item-content">
                 <div className="category-icon">
-                  <FaCamera style={{fontSize:'27px'}}/>
+                  <FaTools style={{fontSize:'27px'}}/>
                 </div>
                 <span className='item-link'>Phu Kien</span>
               </div>
@@ -90,7 +94,7 @@ function MenuBar() {
             <div className="label-item">
               <div className="item-content">
                 <div className="category-icon">
-                  <FaCamera style={{fontSize:'27px'}}/>
+                  <FaMouse style={{fontSize:'27px'}}/>
                 </div>
                 <span className='item-link'>Chuot</span>
               </div>
@@ -105,7 +109,7 @@ function MenuBar() {
             <div className="label-item">
               <div className="item-content">
                 <div className="category-icon">
-                  <FaCamera style={{fontSize:'27px'}}/>
+                  <PiTelevision style={{fontSize:'27px'}}/>
                 </div>
                 <span className='item-link'>Tivi</span>
               </div>
