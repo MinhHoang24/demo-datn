@@ -12,6 +12,7 @@ import {
   Upload,
   Image,
   Spin,
+  Select,
 } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import apiService from "../../Api/Api";
@@ -153,74 +154,68 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
             <Form.Item
               label="Loại"
               name="category"
-              rules={[{ required: true, message: "Hãy nhập loại hàng hóa!" }]}
+              rules={[{ required: true, message: "Hãy chọn loại hàng hóa!" }]}
+            >
+              <Select placeholder="Chọn loại hàng hóa">
+                <Select.Option value="phone">Điện thoại</Select.Option>
+                <Select.Option value="laptop">Laptop</Select.Option>
+                <Select.Option value="phukien">Phụ kiện</Select.Option>
+                <Select.Option value="chuot">Chuột</Select.Option>
+                <Select.Option value="tivi">Ti vi</Select.Option>
+                <Select.Option value="banphim">Bàn Phím</Select.Option>
+                <Select.Option value="tainghe">Tai Nghe</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item
+              label="NSX"
+              name={["brand", "name"]}
+              required
+              rules={[
+                {
+                  required: true,
+                  message: "Hãy nhập tên hãng sản xuất!",
+                },
+              ]}
+              labelCol={{ span: 4 }}
+              wrapperCol={{ span: 20 }}
             >
               <Input />
             </Form.Item>
-            <Form.Item label="Nhà sản xuất" required>
-              <Row justify="center">
-                <Col span={16}>
-                  <Form.Item
-                    label="Tên"
-                    name={["brand", "name"]}
-                    required
-                    rules={[
-                      {
-                        required: true,
-                        message: "Hãy nhập tên hãng sản xuất!",
-                      },
-                    ]}
-                    labelCol={{ span: 4 }}
-                    wrapperCol={{ span: 20 }}
-                  >
-                    <Input />
-                  </Form.Item>
-                  <Form.Item
-                    label="Ảnh hãng"
-                    labelCol={{ span: 5 }}
-                    wrapperCol={{ span: 20 }}
+
+            <Form.Item
+              label="Ảnh"
+              labelCol={{ span: 4 }}
+              wrapperCol={{ span: 20 }}
+            >
+              <Upload
+                listType="picture-card"
+                showUploadList={false}
+                beforeUpload={(file) => {
+                  setBrandImageFile(file);
+                  const reader = new FileReader();
+                  reader.readAsDataURL(file);
+                  reader.onload = () => setProductImagePreview(reader.result);
+                  return false; // chặn upload tự động
+                }}
+              >
+                {productImagePreview ? (
+                  <img
+                    src={productImagePreview}
+                    alt="brand"
                     style={{
-                      marginBottom: 0,
+                      width: "100%",
+                      borderRadius: "10px",
                     }}
-                  >
-                    <Upload
-                      listType="picture-card"
-                      showUploadList={false}
-                      beforeUpload={(file) => {
-                        setBrandImageFile(file);
-                        const reader = new FileReader();
-                        reader.readAsDataURL(file);
-                        reader.onload = () => setProductImagePreview(reader.result);
-                        return false; // chặn upload tự động
-                      }}
-                    >
-                      {productImagePreview ? (
-                        <img
-                          src={productImagePreview}
-                          alt="brand"
-                          style={{
-                            width: "100%",
-                            borderRadius: "10px",
-                          }}
-                        />
-                      ) : (
-                        <div>
-                          <PlusOutlined />
-                          <div style={{ marginTop: 8 }}>Upload</div>
-                        </div>
-                      )}
-                    </Upload>
-                  </Form.Item>
-                </Col>
-                <Col
-                  span={8}
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                  }}
-                />
-              </Row>
+                  />
+                ) : (
+                  <div>
+                    <PlusOutlined />
+                    <div style={{ marginTop: 8 }}>Upload</div>
+                  </div>
+                )}
+              </Upload>
             </Form.Item>
+
             <Form.Item
               label="Thông tin"
               name="description"

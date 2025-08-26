@@ -6,7 +6,7 @@ import { Modal, Input, Button } from 'antd';
 
 const UserProfile = () => {
     const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [showEditProfile, setShowEditProfile] = useState(false);
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
@@ -26,7 +26,7 @@ const UserProfile = () => {
                 const token = localStorage.getItem('authToken');
                 if (!token) {
                     Noti.error('Bạn cần đăng nhập để truy cập dữ liệu!');
-                    setIsLoading(false);
+                    setIsLoading(true);
                     return;
                 }
                 const response = await apiService.getUserProfile();
