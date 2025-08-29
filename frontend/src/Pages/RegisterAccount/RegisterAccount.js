@@ -79,25 +79,40 @@ export default function RegisterPage() {
     };
 
     const addUser = async (newUser) => {
-        try {
-            const response = await apiService.registerUser(newUser);
+    try {
+        const response = await apiService.registerUser(newUser);
 
-            if (response.data.success) {
-                return response.data.user;
+        if (response.data.success) {
+            return response.data.user;
+        } else {
+            // Kiểm tra theo mã lỗi trả về từ backend
+            if (response.data.message === "Số điện thoại đã được sử dụng!") {
+                setErrors((prevErrors) => ({
+                    ...prevErrors,
+                    phonenumber: "Số điện thoại đã được sử dụng!",
+                }));
+            } else if (response.data.message === "Email đã được sử dụng!") {
+                setErrors((prevErrors) => ({
+                    ...prevErrors,
+                    email: "Email đã được sử dụng!",
+                }));
             } else {
-                if (response.data.message === "Người dùng đã tồn tại!") {
-                    setErrors((prevErrors) => ({
-                        ...prevErrors,
-                        phonenumber: "Số điện thoại đã được sử dụng!",
-                    }));
-                }
+                // Nếu có thông báo lỗi khác, trả về lỗi chung
+                setErrors((prevErrors) => ({
+                    ...prevErrors,
+                    apiError: response.data.message || "Đã có lỗi xảy ra. Vui lòng thử lại sau.",
+                }));
             }
-        } catch (error) {
-            console.error('Error occurred while registering user:', error);
-            setErrors({ apiError: "Đã có lỗi xảy ra. Vui lòng thử lại sau." });
-            return null;
         }
-    };
+    } catch (error) {
+        console.error('Error occurred while registering user:', error);
+        
+        // Nếu có lỗi từ server, thông báo lỗi tổng quát
+        setErrors({ apiError: "Đã có lỗi xảy ra. Vui lòng thử lại sau." });
+        return null;
+    }
+};
+
 
     return (
         <div className="register-container">
