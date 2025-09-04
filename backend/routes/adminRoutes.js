@@ -40,7 +40,7 @@ router.delete('/products/:id', protect, isAdmin, deleteProduct);
 router.patch('/products/:id', protect, isAdmin, updateProduct);
 
 // Route upload ảnh
-router.post('/upload/image', uploadImage);
+router.post('/upload/upload-image', uploadImage);
 
 //Quản lý đơn hàng
 router.get('/order', protect, isAdmin, getAllOrders);

@@ -128,7 +128,17 @@ exports.registerUser = async (req, res) => {
             console.log('User with this phone number already exists');
             return res.status(200).json({ // HTTP 409 Conflict
                 success: false, 
-                message: 'Người dùng đã tồn tại!'
+                message: 'Số điện thoại đã được sử dụng!'
+            });
+        }
+
+        // Kiểm tra xem người dùng đã tồn tại với email chưa
+        const existingUserEmail = await User.findOne({ email });
+        if (existingUserEmail) {
+            console.log('User with this email already exists');
+            return res.status(200).json({ // HTTP 409 Conflict
+                success: false, 
+                message: 'Email đã được sử dụng!'
             });
         }
 
@@ -160,6 +170,15 @@ exports.registerUser = async (req, res) => {
         });
     } catch (error) {
         console.error('Error during user registration:', error);
+
+        // Xử lý lỗi MongoDB trùng khóa
+        if (error.code === 11000) {
+            return res.status(409).json({ 
+                success: false, 
+                message: 'Email đã được sử dụng!'
+            });
+        }
+
         res.status(500).json({ 
             success: false, 
             message: 'Lỗi máy chủ!' 

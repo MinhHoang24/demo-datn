@@ -10,8 +10,6 @@ import {
   Divider,
   message,
   Upload,
-  Image,
-  Spin,
   Select,
 } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
@@ -60,9 +58,22 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
       const formData = new FormData();
       formData.append("file", file);
       const response = await apiService.uploadImage(formData);
+      console.log("Upload thành công:", response.data.url);
+
+
       return response.data.url; // URL ảnh trên server
     } catch (error) {
       console.error("Upload ảnh thất bại", error);
+      if (error.response) {
+        console.error("Response lỗi:", error.response);
+      } else if (error.request) {
+        console.error("Lỗi khi gửi request:", error.request);
+      } else {
+        console.error("Lỗi không xác định:", error.message);
+      }
+      
+      // Thông báo lỗi cho người dùng
+      message.error("Upload ảnh thất bại, vui lòng thử lại!");
       throw new Error("Upload ảnh thất bại");
     }
   };
@@ -114,6 +125,14 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
       handleRefresh();
       setModalChild(null);
     } catch (e) {
+      console.error("Đã xảy ra lỗi khi thêm sản phẩm:", e);
+      if (e.response) {
+        console.error("Response lỗi:", e.response);
+      } else if (e.request) {
+        console.error("Lỗi khi gửi request:", e.request);
+      } else {
+        console.error("Lỗi không xác định:", e.message);
+      }
       message.error(e.message || "Đã xảy ra lỗi khi thêm sản phẩm");
     } finally {
       setUploading(false);
@@ -157,13 +176,13 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
               rules={[{ required: true, message: "Hãy chọn loại hàng hóa!" }]}
             >
               <Select placeholder="Chọn loại hàng hóa">
-                <Select.Option value="phone">Điện thoại</Select.Option>
-                <Select.Option value="laptop">Laptop</Select.Option>
-                <Select.Option value="phukien">Phụ kiện</Select.Option>
-                <Select.Option value="chuot">Chuột</Select.Option>
-                <Select.Option value="tivi">Ti vi</Select.Option>
-                <Select.Option value="banphim">Bàn Phím</Select.Option>
-                <Select.Option value="tainghe">Tai Nghe</Select.Option>
+                <Select.Option value="Điện thoại">Điện thoại</Select.Option>
+                <Select.Option value="Laptop">Laptop</Select.Option>
+                <Select.Option value="Phụ kiện">Phụ kiện</Select.Option>
+                <Select.Option value="Chuột">Chuột</Select.Option>
+                <Select.Option value="Ti vi">Ti vi</Select.Option>
+                <Select.Option value="Bàn Phím">Bàn Phím</Select.Option>
+                <Select.Option value="Tai Nghe">Tai Nghe</Select.Option>
               </Select>
             </Form.Item>
             <Form.Item

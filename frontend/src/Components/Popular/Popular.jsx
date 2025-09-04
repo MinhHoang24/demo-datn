@@ -139,9 +139,9 @@ function Popular({ category }) {
                             key={index} 
                             id={item._id}
                             name={item.name} 
-                            image={item.variants[0].image}
+                            image={item.variants[0]?.image}
                             price={item.price} 
-                            sale={item.variants[0].sale} 
+                            sale={item.variants[0]?.sale} 
                             rating={item.rating}
                         />
                       </div>

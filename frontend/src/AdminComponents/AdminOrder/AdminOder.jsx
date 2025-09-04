@@ -40,7 +40,7 @@ const AdminOrder = () => {
         // Map the order data for table display
         const ordersData = response.data.map(order => ({
           maDonHang: order._id,
-          userName: order.userId.userName,
+          userName: order.userId?.userName,
           ngayDat: formatDate(order.createdAt),
           items: order.items,
           paymentMethod: order.paymentMethod ,
@@ -49,7 +49,8 @@ const AdminOrder = () => {
           totalAmount: order.totalAmount,
           order: order,
         }));
-
+        
+        console.log('Dữ liệu đơn hàng nhận được:', ordersData);
         setOrders(ordersData);
       } catch (error) {
         console.error(error);

@@ -4,34 +4,15 @@ const Order = require('../models/orderModel')
 const { validateProduct } = require('../validation/product'); 
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const multer = require('multer');
-const path = require('path');
+const upload = require('../config/uploadConfig');
+const cloudinary = require('../config/cloudinaryConfig');
+const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 
 
-// Cấu hình multer (nên để ở ngoài hàm, chỉ khởi tạo 1 lần)
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '..', 'uploads');
-
-    // Tạo thư mục uploads nếu chưa tồn tại
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir);
-    }
-
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Tạo tên file tránh trùng, ví dụ: 1625489012345.jpg
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-const upload = multer({ storage });
-
-// Hàm xử lý upload ảnh
+// Hàm xử lý upload ảnh lên Cloudinary
 const uploadImage = (req, res) => {
-  // Dùng middleware multer để xử lý file upload
-  upload.single('file')(req, res, (err) => {
+  upload.single('file')(req, res, async (err) => {
     if (err) {
       console.error('Lỗi khi upload ảnh:', err);
       return res.status(500).json({ message: 'Lỗi khi upload ảnh', error: err.message });
@@ -40,12 +21,27 @@ const uploadImage = (req, res) => {
       return res.status(400).json({ message: 'Không có file được upload' });
     }
 
-    // Trả về đường dẫn public để frontend dùng
-    const imageUrl = `/uploads/${req.file.filename}`;
-    res.status(200).json({ url: imageUrl });
+    // Upload ảnh lên Cloudinary
+    try {
+      // Sử dụng cloudinary.uploader.upload thay vì upload_stream
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'product_images',  // Thư mục trên Cloudinary để lưu ảnh
+        public_id: uuidv4(),  // Tạo tên tệp duy nhất bằng UUID
+      });
+
+      // Xóa ảnh tạm thời khỏi server
+      fs.unlinkSync(req.file.path);
+
+      // Trả về URL của ảnh đã tải lên
+      const imageUrl = result.secure_url;
+      res.status(200).json({ url: imageUrl });
+
+    } catch (error) {
+      console.error('Lỗi khi upload ảnh lên Cloudinary:', error);
+      res.status(500).json({ message: 'Lỗi khi upload ảnh lên Cloudinary', error: error.message });
+    }
   });
 };
-
 
 const getAdminDashboard = (req, res) => {
     res.json({ message: 'Welcome to the Admin Dashboard' });
@@ -236,6 +232,7 @@ const createProduct = async (req, res) => {
       // Nếu có lỗi xác thực, trả về thông báo lỗi với chi tiết
       const missingFields = error.details.map(detail => detail.message);
       console.log('Dữ liệu không hợp lệ:', missingFields);
+      console.log('Dữ liệu sản phẩm nhận được:', productData);
 
       return res.status(400).json({
         message: 'Dữ liệu sản phẩm không hợp lệ',

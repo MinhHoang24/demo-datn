@@ -9,6 +9,7 @@ const commentRoutes = require('./routes/commentRoutes')
 const cors = require('cors');
 const app = express();
 const path = require('path');
+const cloudinary = require('./config/cloudinaryConfig');
 require('dotenv').config();
 
 const corsOptions = {
