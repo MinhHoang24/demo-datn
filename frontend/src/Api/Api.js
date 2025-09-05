@@ -96,6 +96,8 @@ const apiService = {
   getAllOrders: () => apiInstance.get("/admin/order"),
   updateOrderAdmin: (orderId, newStatus) =>
     apiInstance.put("/admin/order/update-status", { orderId, newStatus }),
+  // API lấy thống kê đơn hàng
+  getOrderStatistics: () => apiInstance.get("/admin/order/statistics"),
 
   uploadImage: (formData) => 
   apiInstance.post("/admin/upload/upload-image", formData, {

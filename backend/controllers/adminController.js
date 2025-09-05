@@ -365,12 +365,35 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// Hàm xử lý thống kê đơn hàng
+const getOrderStatistics = async (req, res) => {
+  try {
+    // Tổng số đơn hàng
+    const totalOrders = await Order.countDocuments();
 
+    // Tổng doanh thu
+    const totalRevenue = await Order.aggregate([
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+    ]);
+
+    // Số đơn đã hoàn thành
+    const completedOrders = await Order.countDocuments({ orderStatus: 'Delivered' });
+
+    res.json({
+      totalOrders,
+      totalRevenue: totalRevenue[0]?.total || 0,
+      completedOrders,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server Error');
+  }
+};
 
 module.exports = { 
   getAdminDashboard, getAdminProfile, updateAdminProfile, 
   changeAdminPassword, manageUsers, manageProducts, 
   deleteUser, createProduct, deleteProduct, 
   updateProduct, getAllOrders, updateOrderStatus,
-  uploadImage,
+  uploadImage, getOrderStatistics
 };

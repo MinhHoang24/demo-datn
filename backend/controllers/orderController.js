@@ -158,9 +158,6 @@ const deleteOrder = async (req, res) => {
   }
 };
 
-
-
-
 // Hủy đơn hàng
 const cancelOrder = async (req, res) => {
   const { orderId } = req.params;

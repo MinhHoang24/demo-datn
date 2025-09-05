@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { UserOutlined, ProductOutlined, BellOutlined } from "@ant-design/icons";
+import { UserOutlined, ProductOutlined, BellOutlined, RiseOutlined } from "@ant-design/icons";
 import { Badge, Button, Menu } from "antd";
 import AdminUser from "../../AdminComponents/AdminUser/AdminUser";
 import AdminProduct from "../../AdminComponents/AdminProduct/AdminProduct";
 import boxImage from "./box.png";
-import AdminOrder from "../../AdminComponents/AdminOrder/AdminOder";
+import AdminOrder from "../../AdminComponents/AdminOrder/AdminOrder";
 import AdminProfile from "../../AdminComponents/AdminProfile/AdminProfile";
 import styles from "./AdminPage.module.css";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { io } from "socket.io-client";
 import Tooltip from "./Tooltip";
 import CustomModal from './CustomModal';
+import AdminAnalysis from "../../AdminComponents/AdminAnalysis/AdminAnalysis";
 
 const socket = io("http://localhost:5001");
 
@@ -35,6 +36,7 @@ const items = [
   getItem("Người dùng", "users", <UserOutlined />),
   getItem("Đơn hàng", "orders", <img src={boxImage} alt="Order" width={14} />),
   getItem("Thông tin", "profile", <InfoCircleOutlined />),
+  getItem("Thống kê", "analysis", <RiseOutlined />),
 ];
 
 const Admin = () => {
@@ -101,6 +103,8 @@ const Admin = () => {
         return <AdminOrder />;
       case "profile":
         return <AdminProfile />;
+        case "analysis":
+        return <AdminAnalysis />;
       default:
         return <></>;
     }

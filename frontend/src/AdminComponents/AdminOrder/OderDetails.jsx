@@ -131,7 +131,7 @@ const OrderDetails = ({ order, handleRefresh }) => {
       key: "quantity",
       render: (_, record) => {
         // Tính tổng số lượng từ tất cả các biến thể (variant)
-        const totalQuantity = record.variant?.quantity || 0;
+        const totalQuantity = record.quantity || 0;
         return totalQuantity;
       },
     },
@@ -154,7 +154,7 @@ const OrderDetails = ({ order, handleRefresh }) => {
         // Tính đơn giá sau khi trừ đi sale của mẫu
         const sale = record.variant?.sale || 0; 
         const discountedPrice = record.productId.price - (record.productId.price * (sale / 100));
-        const total = discountedPrice * record.variant.quantity
+        const total = discountedPrice * record.quantity
         return formatCurrency(total); 
       },
     }

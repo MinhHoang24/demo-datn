@@ -15,6 +15,7 @@ const {
   getAllOrders,
   updateOrderStatus,
   uploadImage,
+  getOrderStatistics,
 } = require('../controllers/adminController');
 
 // Lấy thông tin tổng quan admin
@@ -45,5 +46,8 @@ router.post('/upload/upload-image', uploadImage);
 //Quản lý đơn hàng
 router.get('/order', protect, isAdmin, getAllOrders);
 router.put('/order/update-status', protect, isAdmin, updateOrderStatus);
+
+// Route để lấy thống kê đơn hàng
+router.get('/order/statistics', protect, isAdmin, getOrderStatistics);
 
 module.exports = router;
