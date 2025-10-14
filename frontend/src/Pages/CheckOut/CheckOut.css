@@ -72,6 +72,10 @@ h1 {
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
+.checkout-item-wrapper {
+    width: 100%;
+}
+
 .checkout-items {
     padding: 15px;
     display: flex;
@@ -80,15 +84,10 @@ h1 {
     margin-bottom: 20px;
 }
 
-.checkout-item {
+.checkout-item-infor {
     display: flex;
     flex-direction: row;
-    width: calc(100% - 20px);
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: transform 0.2s ease;
+    column-gap: 80px;
 }
 
 .checkout-item:hover {
@@ -119,6 +118,7 @@ h1 {
 
 .date-form {
     margin: 20px 0;
+    padding: 0 10px;
 }
 
 .date-inf {
@@ -245,9 +245,10 @@ h1 {
     padding: 20px; /* Increase internal spacing */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
-    gap: 15px; /* Add spacing between content and status card */
+    align-items: flex-start;
+    row-gap: 15px; /* Add spacing between content and status card */
 }
 
 .order-status-card {

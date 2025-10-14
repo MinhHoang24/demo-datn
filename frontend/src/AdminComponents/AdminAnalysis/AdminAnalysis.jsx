@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { message, Statistic, Row, Col, Card, Spin } from "antd";
 import apiService from '../../Api/Api.js'; // Giả sử apiService chứa các phương thức gọi API
+import num2words from "vn-num2words";
 
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(value);
+const formatPrice = (price) => {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
 const AdminOrder = () => {
@@ -60,10 +58,11 @@ const AdminOrder = () => {
             <strong>Tổng đơn hàng:</strong> {statistics.totalOrders}
           </p>
           <p>
-            <strong>Doanh thu:</strong> {statistics.totalRevenue} VND
+            <strong>Đơn hàng đã hoàn thành:</strong> {statistics.completedOrders}
           </p>
           <p>
-            <strong>Đơn hàng đã hoàn thành:</strong> {statistics.completedOrders}
+            <strong>Doanh thu:</strong> { formatPrice(statistics.totalRevenue) } VND <br />
+            <span>(Bang chu: </span> { num2words(statistics.totalRevenue) } VND)
           </p>
         </Card>
       )}

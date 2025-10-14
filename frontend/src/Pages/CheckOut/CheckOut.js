@@ -244,16 +244,18 @@ const Checkout = () => {
                         {userOrders.map((item) => (
                             <div key={item._id} className="checkout-item-wrapper">
                                 <div className="checkout-item">
-                                    <div className="checkout-item-details">
-                                        {item.items.map((productItem, index) => (
-                                            <div key={index} className="product-details">
-                                                <h2>{productItem.productId.name}</h2>
-                                                <p className="item-price">Giá: {formatPrice(productItem.productId.price)}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div style={{ marginTop: '10px' }}>
-                                        <h4>Tổng tiền: {formatPrice(item.totalAmount)}</h4>
+                                    <div className='checkout-item-infor'>
+                                        <div className="checkout-item-details">
+                                            {item.items.map((productItem, index) => (
+                                                <div key={index} className="product-details">
+                                                    <h2>{productItem.productId.name}</h2>
+                                                    <p className="item-price">Giá: {formatPrice(productItem.productId.price)}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div style={{ marginTop: '10px' }}>
+                                            <h4>Tổng tiền: {formatPrice(item.totalAmount)}</h4>
+                                        </div>
                                     </div>
                                     <div className="date-form">
                                         <div className="date-inf" style={{ marginTop: '10px' }}>

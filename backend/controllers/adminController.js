@@ -373,7 +373,19 @@ const getOrderStatistics = async (req, res) => {
 
     // Tổng doanh thu
     const totalRevenue = await Order.aggregate([
-      { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+      // Lọc các đơn hàng có orderStatus là 'Delivered'
+      { 
+        $match: { 
+          orderStatus: 'Delivered' 
+        } 
+      },
+      // Tính tổng doanh thu từ các đơn hàng đã lọc
+      { 
+        $group: { 
+          _id: null, 
+          total: { $sum: "$totalAmount" } 
+        } 
+      }
     ]);
 
     // Số đơn đã hoàn thành

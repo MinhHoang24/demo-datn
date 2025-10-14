@@ -248,24 +248,26 @@ h1{
 }
 
 .box-product-variants .list-variants .item-variant {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        border: 1px solid rgb(179, 193, 215);
-        border-radius: 8px;
-        color: #444;
-        cursor: pointer;
-        font-size: 12px;
-        overflow: hidden;
-        padding: 5px 4px;
-        position: relative;
-        text-decoration: none;
-        width: calc(33.33333% - 6.66667px);
-        min-width: 140px;
-    }
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    border: 1px solid rgb(179, 193, 215);
+    border-radius: 8px;
+    color: #444;
+    cursor: pointer;
+    font-size: 12px;
+    overflow: hidden;
+    padding: 5px 4px;
+    position: relative;
+    text-decoration: none;
+    width: calc(33.33333% - 6.66667px);
+    min-width: 140px;
+}
    
-
+.box-product-variants .list-variants .item-variant:hover {
+    transform: scale(1.05);
+}
 
 .box-product-variants .list-variants .item-variant .change-color-btn {
     display: flex !important;
@@ -297,23 +299,19 @@ h1{
     color: #444;
     text-align: left;
     font-weight: 700;
-
 }
 
-.item-variant.selected{
-    background-color: var(--color4);
-  }
-  
-  .item-variant.selected img {
-    opacity: 1.0;
-  }
-  .item-variant img {
-    opacity: 0.8; 
-  }
-  .item-variant.selected .item-variant-name {
+.item-variant {
+    opacity: 0.6;
+}
+
+.item-variant.selected {
+    opacity: 1;
+}
+
+.item-variant.selected .item-variant-name {
     font-weight: bold; 
-  }
-  
+}
 
 .productdisplay .box-price1 {
     display: flex !important;
@@ -324,7 +322,6 @@ h1{
     padding: 5px;
     width: 100%;
     margin-bottom: 30px;
-
 }
 
 .box-price1 {
@@ -333,15 +330,11 @@ h1{
     text-align: center !important;
     position: relative;
     gap: 10px;
-    
-  
-   
 }
 
 .item-price-percent {
     border-radius: 3px;
     color: var(--color7);
-
 }
 .item-price-new {
     color: var(--color7);
@@ -366,8 +359,6 @@ h1{
     display: flex !important;
     justify-content: flex-start;
     gap: 10px;
-
-
 }
 
 .box-order-btn button {
@@ -418,7 +409,6 @@ h1{
     line-height: 1.5;
     position: relative;
     vertical-align: top;
-    
 }
 .box-order-btn .add-to-cart-btn:hover{
     background-color: rgb(232, 230, 230);

@@ -23,6 +23,7 @@
     "socket.io-client": "^4.8.1",
     "tippy.js": "^6.3.7",
     "unidecode": "^1.1.0",
+    "vn-num2words": "^1.0.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
