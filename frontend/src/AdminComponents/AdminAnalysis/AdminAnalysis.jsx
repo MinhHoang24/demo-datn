@@ -7,7 +7,7 @@ const formatPrice = (price) => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
-const AdminOrder = () => {
+const AdminAnalysis = () => {
   const [statistics, setStatistics] = useState({
     totalOrders: 0,
     totalRevenue: 0,
@@ -71,4 +71,4 @@ const AdminOrder = () => {
   );
 };
 
-export default AdminOrder;
+export default AdminAnalysis;
