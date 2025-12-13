@@ -13,7 +13,7 @@ const cloudinary = require('./config/cloudinaryConfig');
 require('dotenv').config();
 
 const corsOptions = {
-    origin: ['https://web-hitech.web.app', 'http://localhost:3000'],  
+    origin: ['https://minh-hoang.web.app', 'http://localhost:3000'],  
     methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

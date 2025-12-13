@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { message, Statistic, Row, Col, Card, Spin } from "antd";
-import apiService from '../../Api/Api.js'; // Giả sử apiService chứa các phương thức gọi API
+import apiService from '../../Api/Api.js';
 import num2words from "vn-num2words";
 
 const formatPrice = (price) => {

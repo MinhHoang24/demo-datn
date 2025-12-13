@@ -9,7 +9,6 @@ const cloudinary = require('../config/cloudinaryConfig');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 
-
 // Hàm xử lý upload ảnh lên Cloudinary
 const uploadImage = (req, res) => {
   upload.single('file')(req, res, async (err) => {
@@ -222,52 +221,72 @@ const manageProducts = async (req, res) => {
 // Tạo sản phẩm mới
 const createProduct = async (req, res) => {
   try {
-    // Lấy dữ liệu từ request body
     const productData = req.body;
 
-    // Sử dụng Joi để xác thực dữ liệu
+    // ⭐ Làm sạch description + specifications để loại dòng trống
+    productData.description = (productData.description || []).filter(x => x.trim() !== "");
+    productData.specifications = (productData.specifications || []).filter(x => x.trim() !== "");
+
+    // ⭐ Kiểm tra biến thể
+    const hasVariants = Array.isArray(productData.variants) && productData.variants.length > 0;
+
+    // Nếu có biến thể → quantity = tổng variant.quantity
+    if (hasVariants) {
+      productData.quantity = productData.variants.reduce(
+        (sum, v) => sum + (v.quantity || 0),
+        0
+      );
+    }
+
+    // Validate dữ liệu (Joi)
     const { error } = validateProduct(productData);
 
     if (error) {
-      // Nếu có lỗi xác thực, trả về thông báo lỗi với chi tiết
-      const missingFields = error.details.map(detail => detail.message);
-      console.log('Dữ liệu không hợp lệ:', missingFields);
-      console.log('Dữ liệu sản phẩm nhận được:', productData);
-
       return res.status(400).json({
-        message: 'Dữ liệu sản phẩm không hợp lệ',
-        missingFields
+        message: "Dữ liệu sản phẩm không hợp lệ",
+        missingFields: error.details.map(e => e.message),
       });
     }
 
-    // Tạo sản phẩm mới từ thông tin đã được xác thực
+    // ⭐ Tạo document sản phẩm
     const newProduct = new Product({
       name: productData.name,
       category: productData.category,
+
+      image: productData.image, // ảnh chính
+
       brand: productData.brand,
       description: productData.description,
       specifications: productData.specifications,
+
       price: productData.price,
       sale: productData.sale || 0,
-      quantity: productData.quantity || 0,
-      rating: productData.rating || 0,
-      star1: productData.star1 || 0,
-      star2: productData.star2 || 0,
-      star3: productData.star3 || 0,
-      star4: productData.star4 || 0,
-      star5: productData.star5 || 0,
-      reviews: productData.reviews || {},
-      variants: productData.variants,
+
+      quantity: productData.quantity, // đã tính ở trên
+
+      variants: productData.variants || [],
+
+      rating: 0,
+      star1: 0,
+      star2: 0,
+      star3: 0,
+      star4: 0,
+      star5: 0,
+      reviews: {},
     });
 
-    // Lưu sản phẩm vào cơ sở dữ liệu
     const savedProduct = await newProduct.save();
 
-    console.log('Tạo sản phẩm thành công!', savedProduct);
-    res.status(201).json({ message: 'Tạo sản phẩm thành công', product: savedProduct });
+    res.status(201).json({
+      message: "Tạo sản phẩm thành công",
+      product: savedProduct,
+    });
   } catch (error) {
-    console.error('Lỗi hệ thống:', error);
-    res.status(500).json({ message: 'Lỗi khi tạo sản phẩm', error: error.message });
+    console.error("Lỗi khi tạo sản phẩm:", error);
+    res.status(500).json({
+      message: "Lỗi khi tạo sản phẩm",
+      error: error.message,
+    });
   }
 };
 
@@ -365,47 +384,10 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-// Hàm xử lý thống kê đơn hàng
-const getOrderStatistics = async (req, res) => {
-  try {
-    // Tổng số đơn hàng
-    const totalOrders = await Order.countDocuments();
-
-    // Tổng doanh thu
-    const totalRevenue = await Order.aggregate([
-      // Lọc các đơn hàng có orderStatus là 'Delivered'
-      { 
-        $match: { 
-          orderStatus: 'Delivered' 
-        } 
-      },
-      // Tính tổng doanh thu từ các đơn hàng đã lọc
-      { 
-        $group: { 
-          _id: null, 
-          total: { $sum: "$totalAmount" } 
-        } 
-      }
-    ]);
-
-    // Số đơn đã hoàn thành
-    const completedOrders = await Order.countDocuments({ orderStatus: 'Delivered' });
-
-    res.json({
-      totalOrders,
-      totalRevenue: totalRevenue[0]?.total || 0,
-      completedOrders,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Server Error');
-  }
-};
-
 module.exports = { 
   getAdminDashboard, getAdminProfile, updateAdminProfile, 
   changeAdminPassword, manageUsers, manageProducts, 
   deleteUser, createProduct, deleteProduct, 
   updateProduct, getAllOrders, updateOrderStatus,
-  uploadImage, getOrderStatistics
+  uploadImage
 };

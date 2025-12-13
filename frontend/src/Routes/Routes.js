@@ -25,6 +25,7 @@ const publicRoutes=[
     {path: '/PhuKien', component: Category, layout: userLayout, childPath: ':brandName', category: 'PhuKien'},
     {path: '/Chuot', component: Category, layout: userLayout, childPath: ':brandName', category: 'Chuot'},
     {path: '/Tivi', component: Category, layout: userLayout, childPath: ':brandName', category: 'Tivi'},
+    {path: '/MayTinhBang', component: Category, layout: userLayout, childPath: ':brandName', category: 'MayTinhBang'},
 
     {path: '/profile',component: UserProfile, layout: userLayout},
     {path: '/cart', component: Cart, layout: userLayout },

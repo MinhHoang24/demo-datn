@@ -1,112 +1,135 @@
 import React, { useEffect, useState } from "react";
-import { UserOutlined, ProductOutlined, BellOutlined, RiseOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  ProductOutlined,
+  BellOutlined,
+  InfoCircleOutlined,
+} from "@ant-design/icons";
 import { Badge, Button, Menu } from "antd";
+import { io } from "socket.io-client";
+
 import AdminUser from "../../AdminComponents/AdminUser/AdminUser";
 import AdminProduct from "../../AdminComponents/AdminProduct/AdminProduct";
-import boxImage from "./box.png";
 import AdminOrder from "../../AdminComponents/AdminOrder/AdminOrder";
 import AdminProfile from "../../AdminComponents/AdminProfile/AdminProfile";
+// import AdminAnalysis from "../../AdminComponents/AdminAnalysis/AdminAnalysis";
+
+import boxImage from "./box.png";
 import styles from "./AdminPage.module.css";
-import { InfoCircleOutlined } from "@ant-design/icons";
-import { io } from "socket.io-client";
 import Tooltip from "./Tooltip";
-import CustomModal from './CustomModal';
-import AdminAnalysis from "../../AdminComponents/AdminAnalysis/AdminAnalysis";
+import CustomModal from "./CustomModal";
+import { MENU_KEYS, MENU_LABELS, ROLES, ROUTES, STORAGE_KEYS } from "../../Constants/AdminConstants.ts";
 
-const socket = io("http://localhost:5001");
+const SOCKET_URL =
+  process.env.REACT_APP_SOCKET_URL || "http://localhost:5001";
 
-const logout = () => {
-  console.log("User logged out");
-  localStorage.clear();
-  window.location.href = "/";
-};
+const getItem = (label, key, icon, children, type) => ({
+  key,
+  icon,
+  children,
+  label,
+  type,
+});
 
-function getItem(label, key, icon, children, type) {
-  return {
-    key,
-    icon,
-    children,
-    label,
-    type,
-  };
-}
-
-const items = [
-  getItem("Sản phẩm", "products", <ProductOutlined />),
-  getItem("Người dùng", "users", <UserOutlined />),
-  getItem("Đơn hàng", "orders", <img src={boxImage} alt="Order" width={14} />),
-  getItem("Thông tin", "profile", <InfoCircleOutlined />),
-  getItem("Thống kê", "analysis", <RiseOutlined />),
+const MENU_ITEMS = [
+  getItem(MENU_LABELS[MENU_KEYS.PRODUCTS], MENU_KEYS.PRODUCTS, <ProductOutlined />),
+  getItem(MENU_LABELS[MENU_KEYS.USERS], MENU_KEYS.USERS, <UserOutlined />),
+  getItem(
+    MENU_LABELS[MENU_KEYS.ORDERS],
+    MENU_KEYS.ORDERS,
+    <img src={boxImage} alt="Order" width={14} />
+  ),
+  getItem(MENU_LABELS[MENU_KEYS.PROFILE], MENU_KEYS.PROFILE, <InfoCircleOutlined />),
+  // getItem(MENU_LABELS[MENU_KEYS.ANALYSIS], MENU_KEYS.ANALYSIS, <RiseOutlined />),
 ];
+
+const socket = io(SOCKET_URL);
 
 const Admin = () => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [messages, setMessages] = useState([]);
+
   const [isTooltipVisible, setTooltipVisible] = useState(false);
   const [isRead, setIsRead] = useState(true);
-  const [keySelected, setKeySelected] = useState("products");
+  const [keySelected, setKeySelected] = useState(MENU_KEYS.PRODUCTS);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const [isChatModalVisible, setChatModalVisible] = useState(false);
 
   useEffect(() => {
-    const role = localStorage.getItem("role");
-    if (role !== "admin") {
-      window.location.href = "/";
+    const role = localStorage.getItem(STORAGE_KEYS.ROLE);
+
+    if (role !== ROLES.ADMIN) {
+      window.location.href = ROUTES.HOME;
       return;
     }
 
-    socket.on("receive_message", (data) => {
+    const handleReceiveMessage = (data) => {
       console.log("Received new message:", data);
-      setMessages((prevMessages) => [...prevMessages, data]);
       setIsRead(false);
 
       setUsers((prevUsers) => {
-        if (!prevUsers.some((user) => user.id === data.userId)) {
+        const exists = prevUsers.find((user) => user.id === data.userId);
+        if (!exists) {
           return [...prevUsers, { id: data.userId, mes: data.message }];
         }
-        return prevUsers;
+        return prevUsers.map((user) =>
+          user.id === data.userId ? { ...user, mes: data.message } : user
+        );
       });
-    });
+    };
+
+    socket.on("receive_message", handleReceiveMessage);
 
     return () => {
-      socket.off("receive_message");
+      socket.off("receive_message", handleReceiveMessage);
     };
   }, []);
 
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = ROUTES.HOME;
+  };
+
   const handleBellClick = (event) => {
-    const rect = event.target.getBoundingClientRect();
+    const rect = event.currentTarget.getBoundingClientRect();
     setTooltipPosition({
       top: rect.bottom + window.scrollY + 10,
       left: rect.left + window.scrollX - 100,
     });
+
     setTooltipVisible((prevVisible) => !prevVisible);
+    setIsRead(true);
   };
 
   const handleUserClick = (user) => {
     setSelectedUser(user);
-    setTooltipVisible(false); // Close tooltip when a user is selected
-    setChatModalVisible(true); // Open chat modal with the selected user
+    setTooltipVisible(false);
+    setChatModalVisible(true);
   };
 
-  const handleOnClick = ({ key }) => {
+  const handleOnClickMenu = ({ key }) => {
     setKeySelected(key);
+  };
+
+  const handleCloseChatModal = () => {
+    setChatModalVisible(false);
+    setSelectedUser(null);
   };
 
   const renderPage = (key) => {
     switch (key) {
-      case "users":
+      case MENU_KEYS.USERS:
         return <AdminUser />;
-      case "products":
+      case MENU_KEYS.PRODUCTS:
         return <AdminProduct />;
-      case "orders":
+      case MENU_KEYS.ORDERS:
         return <AdminOrder />;
-      case "profile":
+      case MENU_KEYS.PROFILE:
         return <AdminProfile />;
-        case "analysis":
-        return <AdminAnalysis />;
+      // case MENU_KEYS.ANALYSIS:
+      //   return <AdminAnalysis />;
       default:
-        return <></>;
+        return null;
     }
   };
 
@@ -114,6 +137,7 @@ const Admin = () => {
     <>
       <header className={styles.header}>
         <h1 className={styles.headerTitle}>Admin</h1>
+
         <div style={{ display: "flex", alignItems: "center" }}>
           <div style={{ position: "relative" }}>
             <Badge dot={!isRead} offset={[-10, 10]}>
@@ -132,7 +156,18 @@ const Admin = () => {
               content={
                 <div>
                   <h4>Người dùng nhắn tin:</h4>
-                  <ul style={{ margin: 5, padding: 0, listStyle: "none" }}>
+                  <ul
+                    style={{
+                      margin: 5,
+                      padding: 0,
+                      listStyle: "none",
+                      maxHeight: 250,
+                      overflowY: "auto",
+                    }}
+                  >
+                    {users.length === 0 && (
+                      <li style={{ color: "#888" }}>Chưa có tin nhắn mới</li>
+                    )}
                     {users.map((user) => (
                       <li
                         key={user.id}
@@ -145,7 +180,12 @@ const Admin = () => {
                         }}
                         onClick={() => handleUserClick(user)}
                       >
-                        <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
+                        <div
+                          style={{
+                            fontWeight: "bold",
+                            marginBottom: "4px",
+                          }}
+                        >
                           ID: {user.id}
                         </div>
                         <div style={{ color: "#333" }}>
@@ -158,38 +198,44 @@ const Admin = () => {
               }
             />
           </div>
+
           <Button
             ghost
-            onClick={logout}
+            onClick={handleLogout}
             style={{ marginLeft: 10, marginRight: 40 }}
           >
             Đăng xuất
           </Button>
         </div>
       </header>
+
       <div>
         <div className={styles.menuContainer}>
           <Menu
             mode="inline"
             selectedKeys={[keySelected]}
             style={{ height: "100%" }}
-            items={items}
-            onClick={handleOnClick}
+            items={MENU_ITEMS}
+            onClick={handleOnClickMenu}
           />
         </div>
+
         <div className={styles.content}>
           <div
-            style={{ height: "calc(100vh - 120px - 40px)", overflowY: "auto" }}
+            style={{
+              height: "calc(100vh - 120px - 40px)",
+              overflowY: "auto",
+            }}
           >
             {renderPage(keySelected)}
           </div>
         </div>
       </div>
+
       {isChatModalVisible && (
         <CustomModal
-          
           isVisible={isChatModalVisible}
-          onClose={() => setChatModalVisible(false)}
+          onClose={handleCloseChatModal}
           selectedUser={selectedUser}
           socket={socket}
         />

@@ -23,28 +23,29 @@ function Home() {
 
   return (
     <div className="home">
-      <SlidingBanner />
-      <Popular category={"Điện thoại"} />
+      {/* <SlidingBanner /> */}
+      <Popular category={"DienThoai"} />
       <Popular category={"Laptop"} />
-      <Popular category={"Tai nghe"} />
-      <Popular category={"Bàn phím"} />
-      <Popular category={"Phụ kiện"} />
-      <Popular category={"Chuột"} />
-      <Popular category={"Ti vi"} />
+      <Popular category={"TaiNghe"} />
+      <Popular category={"Banphim"} />
+      <Popular category={"PhuKien"} />
+      <Popular category={"Chuot"} />
+      <Popular category={"TiVi"} />
+      <Popular category={"MayTinhBang"} />
 
       {/* Hiển thị icon chat nếu popup chưa mở */}
-      {!isChatOpen && (
+      {/* {!isChatOpen && (
         <div className="chat-icon" onClick={handleClick}>
           <FaCommentDots size={40} color="#007bff" />
         </div>
-      )}
+      )} */}
 
       {/* Hiển thị popup trong Home */}
-      {isChatOpen && (
+      {/* {isChatOpen && (
         <div className="chat-popup-container">
           <ChatPopUp onClose={handleClose}  userId={userId}/>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

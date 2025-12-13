@@ -9,6 +9,10 @@
     flex-direction: column;
     align-items: center;
   }
+
+  .home {
+    padding-top: 80px;
+  }
   
   .welcome-header {
     width: 100%;

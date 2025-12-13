@@ -158,8 +158,6 @@ const AdminProduct = () => {
     }
   };
   
-  
-
   const getSoLuong = (Variants) => {
     if (Array.isArray(Variants.variants)) {
       // Tính tổng số lượng của tất cả các variant
