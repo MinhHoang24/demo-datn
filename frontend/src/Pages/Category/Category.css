@@ -34,7 +34,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1.5px solid #e5e7eb;
+    border: 3px solid #e5e7eb;
     border-radius: 4px;
     height: 36px;
     margin: 0 10px 10px 0;
@@ -74,7 +74,7 @@
     padding-top: 10px;
     display: flex !important;
     flex-wrap: wrap !important;
-    gap: 10px;
+    gap: 30px;
     margin-bottom: 15px;
 }
 
@@ -185,9 +185,9 @@
 }
 
 .block-filter-brand .list-brand .list-brand-item:hover {
-    border-color: var(--color7); /* Thay đổi màu sắc khi di chuột */
-    transform: scale(1.05); /* Tăng kích thước một chút khi di chuột */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Thêm bóng đổ */
+    border-color: var(--color7);
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .block-filter-brand .list-brand .list-brand-item.active {
@@ -207,19 +207,19 @@
     margin: 0 10px 10px 0;
     padding: 7px 24px;
     white-space: nowrap;
-    transition: all 0.3s ease-in-out; /* Thêm hiệu ứng chuyển tiếp */
+    transition: all 0.3s ease-in-out;
 }
 
 .filter-sort__list-filter .btn-filter:hover {
-    background: rgb(50, 132, 194); /* Thay đổi nền khi di chuột */
+    background: rgb(50, 132, 194);
     border-color: var(--color7);
-    color: rgb(255, 255, 0); /* Thay đổi màu chữ khi hover */
+    color: rgb(255, 255, 0);
 }
 
 .filter-sort__list-filter .btn-filter.active {
-    background: rgb(50, 132, 194); /* Thay đổi nền khi di chuột */
+    background: rgb(50, 132, 194);
     border: 1.5px solid var(--color7);
-    color: rgb(255, 255, 0); /* Thay đổi màu chữ khi hover */
+    color: rgb(255, 255, 0);
 }
 
 .criteria-sort__list-filter .btn-filter {
@@ -235,17 +235,40 @@
     margin: 0 10px 10px 0;
     padding: 7px 24px;
     white-space: nowrap;
-    transition: all 0.3s ease-in-out; /* Smooth transition effect */
+    transition: all 0.3s ease-in-out;
 }
 
 .criteria-sort__list-filter .btn-filter:hover {
-background: rgb(50, 132, 194); /* Background change on hover */
+background: rgb(50, 132, 194);
 border-color: var(--color7);
-color: rgb(255, 255, 0); /* Text color change on hover */
+color: rgb(255, 255, 0);
 }
 
 .criteria-sort__list-filter .btn-filter.active {
-background: rgb(50, 132, 194); /* Background change on hover */
+background: rgb(50, 132, 194);
 border: 1.5px solid var(--color7);
-color: rgb(255, 255, 0); /* Text color change on hover */
+color: rgb(255, 255, 0);
+}
+
+.filter-reset {
+    margin-left: 12px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 999px;
+    border: 1.5px solid var(--main-color2);
+    background: white;
+    color: #444;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.filter-reset:hover {
+    background: rgb(50, 132, 194);
+    border-color: var(--color7);
+    color: rgb(255, 255, 0);
+}
+
+.filter-reset:active {
+    transform: scale(0.95);
 }

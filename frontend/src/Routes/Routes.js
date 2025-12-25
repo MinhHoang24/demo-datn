@@ -10,6 +10,7 @@ import UserProfile from '../Pages/UserProfile/UserProfile';
 import CheckOrder from '../Pages/CheckOrder/CheckOrder';
 import Checkout from '../Pages/CheckOut/CheckOut';
 import Cart from '../Pages/Cart/CartPage';
+import VerifyEmail from '../Pages/VerifyEmail/VerifyEmail';
 
 // public Routes
 const publicRoutes=[
@@ -26,6 +27,7 @@ const publicRoutes=[
     {path: '/Chuot', component: Category, layout: userLayout, childPath: ':brandName', category: 'Chuot'},
     {path: '/Tivi', component: Category, layout: userLayout, childPath: ':brandName', category: 'Tivi'},
     {path: '/MayTinhBang', component: Category, layout: userLayout, childPath: ':brandName', category: 'MayTinhBang'},
+    { path: '/verify-email', component: VerifyEmail, layout: userLayout },
 
     {path: '/profile',component: UserProfile, layout: userLayout},
     {path: '/cart', component: Cart, layout: userLayout },

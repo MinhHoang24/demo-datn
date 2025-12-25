@@ -3,9 +3,7 @@ import {
   Input,
   InputNumber,
   Button,
-  Row,
   Col,
-  Divider,
   Upload,
   Select,
   message,
@@ -19,18 +17,13 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [brandName, setBrandName] = useState("");
-  const [brandImageFile, setBrandImageFile] = useState(null);
-  const [brandPreview, setBrandPreview] = useState(null);
 
   const [productImageFile, setProductImageFile] = useState(null);
-  const [productImagePreview, setProductImagePreview] = useState(null);
 
   const [description, setDescription] = useState("");
   const [specifications, setSpecifications] = useState("");
 
   const [price, setPrice] = useState(0);
-  const [sale, setSale] = useState(0);
-  const [quantity, setQuantity] = useState(0);
 
   // VARIANTS
   const [variants, setVariants] = useState([]);
@@ -76,12 +69,6 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
 
       setUploading(true);
 
-      // Upload ảnh thương hiệu
-      let brandImageUrl = "";
-      if (brandImageFile) {
-        brandImageUrl = await uploadImageToServer(brandImageFile);
-      }
-
       // Upload ảnh sản phẩm chính
       let productImageUrl = "";
       if (productImageFile) {
@@ -108,12 +95,9 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
         name,
         category,
         price,
-        sale,
-        quantity,
         image: productImageUrl,
         brand: {
           name: brandName,
-          image: brandImageUrl,
         },
         description: description
           .split("\n")
@@ -146,165 +130,144 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
       <h2 className="text-center mb-5">Thêm Sản Phẩm</h2>
 
       {/* PRODUCT INFO */}
-      <Row gutter={16}>
-        <Col span={12}>
-          <label>Tên sản phẩm</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} />
-
-          <label style={{ marginTop: 10 }}>Loại</label>
-          <Select
-            style={{ width: "100%" }}
-            value={category}
-            onChange={setCategory}
-            placeholder="Chọn loại hàng hóa"
-          >
-            {Object.values(CATEGORY).map((key) => (
-              <Select.Option key={key} value={key}>
-                {CATEGORY_TITLES[key]}
-              </Select.Option>
-            ))}
-          </Select>
-
-          <label style={{ marginTop: 10 }}>Tên hãng</label>
-          <Input
-            value={brandName}
-            onChange={(e) => setBrandName(e.target.value)}
-          />
-
-          <div className="flex gap-10 my-6">
-            <div>
-              <label>Ảnh hãng</label>
-              <Upload
-                listType="picture-card"
-                showUploadList={false}
-                beforeUpload={(file) => {
-                  setBrandImageFile(file);
-                  const r = new FileReader();
-                  r.onload = () => setBrandPreview(r.result);
-                  r.readAsDataURL(file);
-                  return false;
-                }}
-              >
-                {brandPreview ? (
-                  <img src={brandPreview} style={{ width: "100%" }} />
-                ) : (
-                  <div>
-                    <PlusOutlined />
-                    <div>Upload</div>
-                  </div>
-                )}
-              </Upload>
-            </div>
-
-            <div>
-              <label>Ảnh sản phẩm (bắt buộc)</label>
-              <Upload
-                listType="picture-card"
-                showUploadList={false}
-                beforeUpload={(file) => {
-                  setProductImageFile(file);
-                  const r = new FileReader();
-                  r.onload = () => setProductImagePreview(r.result);
-                  r.readAsDataURL(file);
-                  return false;
-                }}
-              >
-                {productImagePreview ? (
-                  <img src={productImagePreview} style={{ width: "100%" }} />
-                ) : (
-                  <div>
-                    <PlusOutlined />
-                    <div>Upload</div>
-                  </div>
-                )}
-              </Upload>
-            </div>
+      <div className="flex gap-5">
+        <Col span={12} className="flex flex-col gap-5">
+          {/* TEN SAN PHAM */}
+          <div>
+            <label>Tên sản phẩm <span className="text-red-500">*</span></label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
+          {/* LOAI */}
+          <div>
+            <label>Loại <span className="text-red-500">*</span></label>
+            <Select
+              style={{ width: "100%" }}
+              value={category}
+              onChange={setCategory}
+              placeholder="Chọn loại hàng hóa"
+            >
+              {Object.values(CATEGORY).map((key) => (
+                <Select.Option key={key} value={key}>
+                  {CATEGORY_TITLES[key]}
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
+          {/* HANG */}
+          <div>
+            <label>Tên hãng <span className="text-red-500">*</span></label>
+            <Input
+              value={brandName}
+              onChange={(e) => setBrandName(e.target.value)}
+            />
+          </div>
+          {/* ANH HANG */}
+          <div>
+            <label>Ảnh sản phẩm <span className="text-red-500">*</span></label>
+            <Upload
+              showUploadList={false}
+              beforeUpload={(file) => {
+                setProductImageFile(file);
+                return false;
+              }}
+            >
+              <Button icon={<PlusOutlined />}>Chọn ảnh sản phẩm</Button>
+            </Upload>
 
-          <label>Thông tin sản phẩm</label>
-          <Input.TextArea
-            rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-
-          <label>Thông số kỹ thuật</label>
-          <Input.TextArea
-            rows={4}
-            value={specifications}
-            onChange={(e) => setSpecifications(e.target.value)}
-          />
-
-          <label>Giá</label>
-          <InputNumber
-            min={0}
-            style={{ width: "100%" }}
-            value={price}
-            onChange={setPrice}
-            formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-          />
-
-          <label style={{ marginTop: 10 }}>Giảm giá (%)</label>
-          <InputNumber min={0} style={{ width: "100%" }} value={sale} onChange={setSale} />
-
-          <label style={{ marginTop: 10 }}>Số lượng</label>
-          <InputNumber min={0} style={{ width: "100%" }} value={quantity} onChange={setQuantity} />
+            {productImageFile && (
+              <p className="mt-2 text-sm text-gray-600">
+                📄 {productImageFile.name}
+              </p>
+            )}
+          </div>
+          {/* THONG TIN SAN PHAM */}
+          <div>
+            <label>Thông tin sản phẩm <span className="text-red-500">*</span></label>
+            <Input.TextArea
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          {/* THONG SO KY THUAT */}
+          <div>
+            <label>Thông số kỹ thuật <span className="text-red-500">*</span></label>
+            <Input.TextArea
+              rows={4}
+              value={specifications}
+              onChange={(e) => setSpecifications(e.target.value)}
+            />
+          </div>
+          {/*GIA */}
+          <div>
+            <label>Giá <span className="text-red-500">*</span></label>
+            <InputNumber
+              min={0}
+              style={{ width: "100%" }}
+              value={price}
+              onChange={setPrice}
+              formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+            />
+          </div>        
         </Col>
 
         {/* VARIANTS */}
         <Col span={12}>
-          <h3 style={{ textAlign: "center" }}>Biến thể (tùy chọn)</h3>
+          <h3 style={{ textAlign: "center" }}>Biến thể</h3>
 
           {variants.map((v) => (
             <div
               key={v.key}
-              style={{ padding: 10, border: "1px solid #eee", marginBottom: 10 }}
             >
-              <Row gutter={16}>
-                <Col span={18}>
-                  <label>Màu sắc</label>
-                  <Input
-                    value={v.color}
-                    onChange={(e) => updateVariant(v.key, "color", e.target.value)}
-                  />
+              <div className="flex justify-between">
+                <Col span={18} className="flex flex-col gap-6 mb-5">
+                  <div>
+                    <label>Màu sắc</label>
+                    <Input
+                      value={v.color}
+                      onChange={(e) => updateVariant(v.key, "color", e.target.value)}
+                    />
+                  </div>
 
-                  <label>Ảnh</label>
-                  <Upload
-                    listType="picture-card"
-                    showUploadList={false}
-                    beforeUpload={(file) => {
-                      setVariantsFiles((p) => ({ ...p, [v.key]: file }));
-                      const r = new FileReader();
-                      r.onload = () => updateVariant(v.key, "imageUrl", r.result);
-                      r.readAsDataURL(file);
-                      return false;
-                    }}
-                  >
-                    {v.imageUrl ? (
-                      <img src={v.imageUrl} style={{ width: "100%" }} />
-                    ) : (
-                      <div>
-                        <PlusOutlined />
-                        <div>Upload</div>
-                      </div>
+                  <div>
+                    <label>Ảnh</label>
+                    <Upload
+                      showUploadList={false}
+                      beforeUpload={(file) => {
+                        setVariantsFiles((p) => ({ ...p, [v.key]: file }));
+                        return false;
+                      }}
+                    >
+                      <Button size="small" icon={<PlusOutlined />}>
+                        Chọn ảnh
+                      </Button>
+                    </Upload>
+                    {variantsFiles[v.key] && (
+                      <p className="mt-1 text-xs text-gray-600">
+                        📄 {variantsFiles[v.key].name}
+                      </p>
                     )}
-                  </Upload>
-
-                  <label>Số lượng</label>
-                  <InputNumber
-                    min={0}
-                    style={{ width: "100%" }}
-                    value={v.quantity}
-                    onChange={(val) => updateVariant(v.key, "quantity", val)}
-                  />
-
-                  <label>Giảm giá (%)</label>
-                  <InputNumber
-                    min={0}
-                    style={{ width: "100%" }}
-                    value={v.sale}
-                    onChange={(val) => updateVariant(v.key, "sale", val)}
-                  />
+                  </div>
+                  
+                  <div>
+                    <label>Số lượng</label>
+                    <InputNumber
+                      min={0}
+                      style={{ width: "100%" }}
+                      value={v.quantity}
+                      onChange={(val) => updateVariant(v.key, "quantity", val)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label>Giảm giá (%)</label>
+                    <InputNumber
+                      min={0}
+                      style={{ width: "100%" }}
+                      value={v.sale}
+                      onChange={(val) => updateVariant(v.key, "sale", val)}
+                    />
+                  </div>
                 </Col>
 
                 <Col span={4} style={{ display: "flex", alignItems: "center" }}>
@@ -312,7 +275,7 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
                     <MinusCircleOutlined />
                   </Button>
                 </Col>
-              </Row>
+              </div>
             </div>
           ))}
 
@@ -320,16 +283,17 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
             <PlusOutlined /> Thêm biến thể
           </Button>
         </Col>
-      </Row>
+      </div>
 
-      <Row style={{ marginTop: 20, justifyContent: "flex-end" }}>
-        <Button onClick={() => setModalChild(null)} style={{ marginRight: 10 }}>
+      <div className="flex justify-end gap-4 pt-5">
+        <Button onClick={() => setModalChild(null)}>
           Hủy
         </Button>
         <Button type="primary" loading={uploading} onClick={onSubmit}>
           Thêm sản phẩm
         </Button>
-      </Row>
+      </div>
+      
     </div>
   );
 };

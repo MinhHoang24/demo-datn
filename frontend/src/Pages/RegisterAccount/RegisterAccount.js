@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import apiService from "../../Api/Api";
 import "./RegisterAccount.css";
+import Loader from '../../Components/Loader/Loader.jsx';
 
 export default function RegisterPage() {
     const [phonenumber, setPhonenumber] = useState("");
@@ -12,7 +13,8 @@ export default function RegisterPage() {
     const [rePassword, setRePassword] = useState("");
     const [errors, setErrors] = useState({});
     const [successMessage, setSuccessMessage] = useState("");
-    const navigate = useNavigate();
+    const [isRegistered, setIsRegistered] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const validatePhoneNumber = (phoneNumber) => {
         return /^(0)[3|5|7|8|9][0-9]{8}$/.test(phoneNumber);
@@ -68,10 +70,10 @@ export default function RegisterPage() {
             const savedUser = await addUser(newUser);
 
             if (savedUser) {
-                setSuccessMessage("Đăng ký thành công! Đang chuyển hướng đến trang đăng nhập...");
-                setTimeout(() => {
-                    navigate('/login');
-                }, 2000);
+                setIsRegistered(true);
+                setSuccessMessage(
+                    "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản trước khi đăng nhập."
+                );
             } else {
                 console.log('Đã xảy ra lỗi khi thêm người dùng.');
             }
@@ -80,6 +82,7 @@ export default function RegisterPage() {
 
     const addUser = async (newUser) => {
     try {
+        setIsSubmitting(true);
         const response = await apiService.registerUser(newUser);
 
         if (response.data.success) {
@@ -110,6 +113,8 @@ export default function RegisterPage() {
         // Nếu có lỗi từ server, thông báo lỗi tổng quát
         setErrors({ apiError: "Đã có lỗi xảy ra. Vui lòng thử lại sau." });
         return null;
+    } finally {
+        setIsSubmitting(false);
     }
 };
 
@@ -119,98 +124,123 @@ export default function RegisterPage() {
             <div className="login-form">
                 <div className="title">Chào mừng quay lại với <span className="app-name">MH SHOP</span></div>
                 <div className="subtitle">Tạo tài khoản của bạn</div>
-                <form onSubmit={handleSubmit}>
-                    {/* Số điện thoại */}
-                    <div className="input-container">
-                        <div>
-                            <label htmlFor="phonenumber">Số điện thoại:</label>
-                            <input
-                                type="text"
-                                id="phonenumber"
-                                value={phonenumber}
-                                onChange={(e) => setPhonenumber(e.target.value)}
-                            />
+                {!isRegistered ? (
+                    <form onSubmit={handleSubmit}>
+                        {/* Số điện thoại */}
+                        <div className="input-container">
+                            <div>
+                                <label htmlFor="phonenumber">Số điện thoại:</label>
+                                <input
+                                    type="text"
+                                    id="phonenumber"
+                                    value={phonenumber}
+                                    onChange={(e) => setPhonenumber(e.target.value)}
+                                />
+                            </div>
+                            {errors.phonenumber && <div className="error">{errors.phonenumber}</div>}
                         </div>
-                        {errors.phonenumber && <div className="error">{errors.phonenumber}</div>}
-                    </div>
 
-                    {/* Tên người dùng */}
-                    <div className="input-container">
-                        <div>
-                            <label htmlFor="username">Tạo tên người dùng:</label>
-                            <input
-                                type="text"
-                                id="username"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                            />
+                        {/* Tên người dùng */}
+                        <div className="input-container">
+                            <div>
+                                <label htmlFor="username">Tạo tên người dùng:</label>
+                                <input
+                                    type="text"
+                                    id="username"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                />
+                            </div>
+                            {errors.username && <div className="error">{errors.username}</div>}
                         </div>
-                        {errors.username && <div className="error">{errors.username}</div>}
-                    </div>
 
-                    {/* Email */}
-                    <div className="input-container">
-                        <div>
-                            <label htmlFor="email">Email:</label>
-                            <input
-                                type="email"
-                                id="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
+                        {/* Email */}
+                        <div className="input-container">
+                            <div>
+                                <label htmlFor="email">Email:</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                            </div>
+                            {errors.email && <div className="error">{errors.email}</div>}
                         </div>
-                        {errors.email && <div className="error">{errors.email}</div>}
-                    </div>
 
-                    {/* Địa chỉ */}
-                    <div className="input-container">
-                        <div>
-                            <label htmlFor="diachi">Địa chỉ:</label>
-                            <input
-                                type="text"
-                                id="diachi"
-                                value={diaChi}
-                                onChange={(e) => setDiaChi(e.target.value)}
-                            />
+                        {/* Địa chỉ */}
+                        <div className="input-container">
+                            <div>
+                                <label htmlFor="diachi">Địa chỉ:</label>
+                                <input
+                                    type="text"
+                                    id="diachi"
+                                    value={diaChi}
+                                    onChange={(e) => setDiaChi(e.target.value)}
+                                />
+                            </div>
+                            {errors.diaChi && <div className="error">{errors.diaChi}</div>}
                         </div>
-                        {errors.diaChi && <div className="error">{errors.diaChi}</div>}
-                    </div>
 
-                    {/* Mật khẩu */}
-                    <div className="input-container">
-                        <div>
-                            <label htmlFor="password">Mật khẩu:</label>
-                            <input
-                                type="password"
-                                id="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
+                        {/* Mật khẩu */}
+                        <div className="input-container">
+                            <div>
+                                <label htmlFor="password">Mật khẩu:</label>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                            </div>
+                            {errors.password && <div className="error">{errors.password}</div>}
                         </div>
-                        {errors.password && <div className="error">{errors.password}</div>}
-                    </div>
 
-                    {/* Xác nhận mật khẩu */}
-                    <div className="input-container">
-                        <div>
-                            <label htmlFor="re-password">Xác nhận mật khẩu:</label>
-                            <input
-                                type="password"
-                                id="re-password"
-                                value={rePassword}
-                                onChange={(e) => setRePassword(e.target.value)}
-                            />
+                        {/* Xác nhận mật khẩu */}
+                        <div className="input-container">
+                            <div>
+                                <label htmlFor="re-password">Xác nhận mật khẩu:</label>
+                                <input
+                                    type="password"
+                                    id="re-password"
+                                    value={rePassword}
+                                    onChange={(e) => setRePassword(e.target.value)}
+                                />
+                            </div>
+                            {errors.rePassword && <div className="error">{errors.rePassword}</div>}
                         </div>
-                        {errors.rePassword && <div className="error">{errors.rePassword}</div>}
-                    </div>
 
-                    <div className="signup-link">
-                        Bạn đã có tài khoản?
-                        <Link to="/login"> Đăng nhập ngay!</Link>
-                    </div>
+                        <div className="signup-link">
+                            Bạn đã có tài khoản?
+                            <Link to="/login"> Đăng nhập ngay!</Link>
+                        </div>
 
-                    <button type="submit">Tạo tài khoản</button>
-                </form>
+                        <button 
+                            type="submit"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? <Loader size={24} /> : "Tạo tài khoản"}
+                        </button>
+                    </form>
+                ) : (
+                    <div className="verify-info">
+                        <h2 className="font-bold">📧 Xác nhận email</h2>
+                        <p>
+                            Chúng tôi đã gửi email xác nhận đến:
+                            <strong> {email}</strong>
+                        </p>
+                        <p>Vui lòng kiểm tra hộp thư và click vào link xác nhận.</p>
+                        <p>Sau khi xác nhận, bạn có thể quay lại đăng nhập.</p>
+
+                        <Link 
+                            to="/login" 
+                            className="pb-4 hover:text-blue-300 text-blue-600"
+                        >
+                            👉 Đi tới trang đăng nhập
+                        </Link>
+                    </div>
+                )}
+                
                 {successMessage && <div className="success-message">{successMessage}</div>}
                 {errors.apiError && <div className="error">{errors.apiError}</div>}
             </div>

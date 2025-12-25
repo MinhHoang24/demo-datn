@@ -158,15 +158,6 @@ const AdminProduct = () => {
     }
   };
   
-  const getSoLuong = (Variants) => {
-    if (Array.isArray(Variants.variants)) {
-      // Tính tổng số lượng của tất cả các variant
-      return Variants.variants.reduce((acc, variant) => acc + variant.quantity, 0);
-    }
-  };
-  
-
-  
   const { confirm } = Modal;
   const showDeleteConfirm = (product) => {
     confirm({
@@ -219,10 +210,19 @@ const AdminProduct = () => {
     },
     {
       title: "Số lượng",
-      key: "soLuong",
-      render: (record) => getSoLuong(record),
+      dataIndex: "quantity",
+      key: "quantity",
+      sorter: (a, b) => (a.quantity || 0) - (b.quantity || 0),
       ellipsis: true,
-      sorter: (a, b) => getSoLuong(b) - getSoLuong(a),
+    },
+    {
+      title: "SALE",
+      dataIndex: "sale",
+      key: "sale",
+      render: (sale) =>
+        sale > 0 ? <span style={{ color: "red" }}>-{sale}%</span> : "-",
+      sorter: (a, b) => (a.sale || 0) - (b.sale || 0),
+      sortDirections: ["descend", "ascend"],
     },
     {
       title: "Đánh giá",

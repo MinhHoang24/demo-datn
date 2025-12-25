@@ -9,6 +9,8 @@ export const CATEGORY = {
   MAY_TINH_BANG: 'MayTinhBang',
 } as const;
 
+export const CATEGORY_LIST = Object.values(CATEGORY);
+
 export const CATEGORY_TITLES = {
   [CATEGORY.DIEN_THOAI]: 'Điện Thoại',
   [CATEGORY.LAPTOP]: 'Laptop',

@@ -189,8 +189,16 @@ const AdminUser = () => {
       dataIndex: "phoneNumber",
       key: "phoneNumber",
       ellipsis: true,
-      width: "20%",
+      width: "15%",
       ...getColumnSearchProps("phoneNumber"),
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
+      ellipsis: true,
+      width: "20%",
+      ...getColumnSearchProps("email"),
     },
     {
       title: "Địa chỉ",
@@ -234,9 +242,9 @@ const AdminUser = () => {
         loading={loading}
         dataSource={dataSource}
         pagination={{
-          pageSizeOptions: ["5", "10", "15"],
+          pageSizeOptions: ["10", "15"],
           showSizeChanger: true,
-          defaultPageSize: 5,
+          defaultPageSize: 10,
           style: { marginBottom: "20px" },
         }}
       />

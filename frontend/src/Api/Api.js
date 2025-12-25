@@ -40,7 +40,6 @@ const apiService = {
   removeProductFromCart: (productId, variantColor) => apiInstance.delete("cart/delete", { data: { productId, variantColor } }),
   clearCart: () => apiInstance.delete("cart/clear"),
 
-
   // **Comment and Rating APIs**
   addReview: (productId, userId, stars, text) => apiInstance.post(`/product/${productId}/review`, {productId, userId, stars, text}),
   addComment: (productId, userId, text, rating) => apiInstance.post(`/comments`, { productId, userId, text, rating }),
@@ -49,6 +48,11 @@ const apiService = {
   // **User APIs**
   registerUser: (newUser) => apiInstance.post("/register", newUser),
   loginUser: (user) => apiInstance.post("/login", user),
+  verifyEmail: (token) =>
+    apiInstance.get(`/verify-email?token=${token}`),
+
+  resendVerifyEmail: (data) =>
+    apiInstance.post("/resend-verify-email", data),
   getUserProfile: () => apiInstance.get("/profile"),
   getProducts: () => apiInstance.get("/product"),
   updateUserProfile: (userData) => apiInstance.put("/profile", userData), // Chỉnh sửa thông tin cá nhân

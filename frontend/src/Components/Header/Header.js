@@ -10,12 +10,23 @@ import MenuBar from "../MenuBar/MenuBar";
 import 'tippy.js/dist/tippy.css';
 import { AuthContext } from "../../Contexts/AuthContext";
 import { faBell, faComment } from '@fortawesome/free-solid-svg-icons';
-// import useSignalR from "../useSignalR/useSignalR";
+import { useCart } from "../../Contexts/CartContext";
 
 function Header() {
+    const { cart, syncCartFromServer } = useCart();
+
+    useEffect(() => {
+        syncCartFromServer();
+    }, []);
+
+    const cartCount = cart.reduce(
+        (total, item) => total + (item.quantity || 0),
+        0
+    );
+
     useEffect(() => {
         const role = localStorage.getItem("role");
-        console.log("[useEffect] role from localStorage:", role);  // log role lúc mount
+        console.log("[useEffect] role from localStorage:", role);
         if(role === "admin") {
           console.log("[useEffect] Redirecting admin to /admin");
           window.location.href = "/admin";
@@ -30,8 +41,8 @@ function Header() {
         console.log("[handleLogout] User logging out:", user);
         logout();
         window.location.replace('/');
-        localStorage.removeItem('phoneNumber'); // Xóa thông tin người dùng
-        localStorage.removeItem('isLoggedIn'); // Xóa trạng thái đăng nhập
+        localStorage.removeItem('phoneNumber');
+        localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('authToken');
         localStorage.removeItem('userID');
         console.log("[handleLogout] localStorage cleared, redirected to /");
@@ -39,13 +50,6 @@ function Header() {
 
     const [visible, setVisible] = useState(false);
     const [message, setMessage] = useState('');
-    
-    const showMessage = (msg) => {
-        console.log("[showMessage] New message received:", msg);
-        setMessage(msg);
-        setVisible(false); 
-        setIsRead(false);
-    };
     
     // useSignalR(showMessage, '');
 
@@ -112,20 +116,44 @@ function Header() {
                     </div>
                 </Link>
                 <div className="menu-list">
-                    <div className="shop-cart">
-                        <Link to="/cart" className="shop-cart">
-                            <div className="box-icon">
-                                <div className='my-icon'>
-                                    <FontAwesomeIcon icon={faBagShopping} className='fa-h-24px' />
-                                </div>
-                            </div>
-                            <div className="box-content">
-                                <p className="title-y">Giỏ hàng</p>
-                                <span className="count"></span>
-                            </div>        
-                        </Link>
+                    <Link to="/cart" className="relative flex items-center gap-2">
+                        {/* ICON CART */}
+                        <div className="relative">
+                        <FontAwesomeIcon
+                            icon={faBagShopping}
+                            className="fa-h-24px text-white"
+                        />
+
+                        {/* CART COUNT BADGE */}
+                        {cartCount > 0 && (
+                            <span
+                            className="
+                                absolute
+                                -top-2
+                                -right-2
+                                min-w-[18px]
+                                h-[18px]
+                                px-1
+                                flex
+                                items-center
+                                justify-center
+                                rounded-full
+                                bg-red-500
+                                text-white
+                                text-[11px]
+                                font-bold
+                                leading-none
+                            "
+                            >
+                            {cartCount}
+                            </span>
+                        )}
+                        </div>
+
+                        {/* TEXT */}
+                        <span className="title-y">Giỏ hàng</span>
+                    </Link>
                     </div>
-                </div>
                 
                 <div>
                     {isLoggedIn ? (

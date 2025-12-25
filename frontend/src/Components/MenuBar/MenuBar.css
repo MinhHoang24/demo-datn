@@ -16,7 +16,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0px 40px;
     width: 170px;
     transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
     text-decoration: none; /* Bỏ gạch chân */
@@ -71,16 +70,6 @@
   }
   
   /* Hiệu ứng phóng to khi di chuột */
-.label-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0px 40px;
-  width: 170px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border-radius: 8px;
-}
-
 .label-item:hover {
   transform: scale(1.1); /* Phóng to */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Hiệu ứng đổ bóng */

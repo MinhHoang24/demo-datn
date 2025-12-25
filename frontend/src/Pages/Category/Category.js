@@ -1,14 +1,10 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom';
 import Item from '../../Components/Item/Item.jsx';
 import './Category.css'
 import Breadcrumbs from '../../Components/BreadCrumbs/BreadCrumbs.js';
-import decreaseFilt from '../../Assets/arrow-down.svg';
-import increaseFilt from '../../Assets/arrow-up.svg'
-import saleFilt from '../../Assets/percentage.svg'
-import money from '../../Assets/money.svg'
-import rating from '../../Assets/rating.svg'
 import apiService from '../../Api/Api.js';
+import { Select } from 'antd';
  
  
 function Category(props) {
@@ -29,7 +25,7 @@ function Category(props) {
       const images = {};
       for (const brand of brandList) {
         const image = await getBrandImage(brand);
-        images[brand] = image || '/path/to/default-image.png'; // Đặt hình mặc định nếu không có
+        images[brand] = image || '/path/to/default-image.png';
       }
       setBrandImages(images);
     };
@@ -42,7 +38,7 @@ function Category(props) {
     const fetchProducts = async () => {
       try {
         const response = await apiService.getProducts();
-        const products = response.data.products || [];
+        const products = response.data.formattedProducts || [];
         setProducts(products);
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -55,7 +51,6 @@ function Category(props) {
  
  
   useEffect(() => {
-    // reset lại filters khi đổi category
     setProductBrand('');
     setActiveFilter(null);
     setPriceRangeFilter('');
@@ -79,22 +74,6 @@ function Category(props) {
       return null;
     }
   }
- 
-  const handlePriceRangeFilter = (range) => {
-    setPriceRangeFilter(range);
-  };
- 
-  const handleRatingFilter = (rating) => {
-    setRatingFilter(rating);
-  };
- 
-  const handleBrandFilter = (brand) => {
-    setProductBrand(brand);
-  };
- 
-  const handleFilterClick = (filter) => {
-    setActiveFilter(filter);
-  };
  
   const filterByPriceRange = (minPrice, maxPrice) => {
     setActiveFilter({ type: 'price', min: minPrice, max: maxPrice });
@@ -172,149 +151,109 @@ function Category(props) {
     setFilteredProducts(filteredProducts);
   }, [products, productBrand, category, activeFilter]);
   
-  
+  console.log('abc:', brandList);
  
   const handleSortClick = (sortType) => {
     setActiveFilter({ type: 'sort', value: sortType });
   };
+
+  const SORT_OPTIONS = [
+    { label: 'Giá Cao - Thấp', value: 'highToLow' },
+    { label: 'Giá Thấp - Cao', value: 'lowToHigh' },
+    { label: 'Khuyến mãi HOT', value: 'hotDeals' },
+    { label: 'Đánh giá cao', value: 'highRating' },
+  ];
+
+  const PRICE_OPTIONS = [
+    { label: 'Dưới 5 triệu', min: 1, max: 5_000_000 },
+    { label: '5 - 10 triệu', min: 5_000_000, max: 10_000_000 },
+    { label: '10 - 20 triệu', min: 10_000_000, max: 20_000_000 },
+    { label: '20 - 30 triệu', min: 20_000_000, max: 30_000_000 },
+    { label: 'Trên 30 triệu', min: 30_000_000, max: 1_000_000_000 },
+  ];
  
   return (
-    <div className='category-container'>
-      <Breadcrumbs category={props.category} brand={brandName} />
-      <div className="clear"></div>
-      <div className="block-filter-brand">
-        <div className="filter-brands-title">Chọn theo thương hiệu</div>
-        <div className="list-brand">
-          {brandList.map((brand, index) => (
-            <Link
-              key={index}
-              to={`/${props.category.toLowerCase()}/${brand.toLowerCase()}`}
-              className={`list-brand-item ${brand.toLowerCase() === productBrand.toLowerCase() ? 'active' : ''}`}
-              onClick={() => handleBrandFilter(brand)}
-            >
-              <div
-                className={`brand-img-container ${brand.toLowerCase() === productBrand.toLowerCase() ? 'active-brand-container' : ''
-                  }`}
-              >
-                <img
-                  src={brandImages[brand] || '/path/to/default-image.png'}
-                  alt={brand}
-                  className="brand-img"
-                />
-              </div>
-            </Link>
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+      <Breadcrumbs category={category} brand={brandName} />
+
+      {/* BRAND FILTER */}
+      <div className="flex flex-wrap items-center gap-4">
+        <span className="font-semibold">Thương hiệu:</span>
+        <Select
+          style={{ width: 260 }}
+          placeholder="Chọn thương hiệu"
+          allowClear
+          value={productBrand || undefined}
+          onChange={(value) => setProductBrand(value || "")}
+          options={brandList.map((b) => ({ label: b, value: b }))}
+        />
+      </div>
+
+      {/* SORT */}
+      <div className="flex flex-wrap gap-3">
+        {SORT_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => handleSortClick(opt.value)}
+            className={`px-4 py-2 rounded border text-sm ${
+              activeFilter?.value === opt.value
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white hover:border-blue-500"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {/* PRICE FILTER */}
+      <div className="flex flex-wrap gap-3">
+        {PRICE_OPTIONS.map((opt) => (
+          <button
+            key={opt.label}
+            onClick={() => filterByPriceRange(opt.min, opt.max)}
+            className={`px-4 py-2 rounded border text-sm ${
+              activeFilter?.min === opt.min
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white hover:border-blue-500"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {/* PRODUCT GRID */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {filteredProducts
+          .slice(0, maxIndex)
+          .map((product) => (
+            <Item
+              key={product._id}
+              id={product._id}
+              name={product.name}
+              image={product.variants[0]?.image}
+              price={product.price}
+              sale={product.sale}
+              rating={product.rating}
+            />
           ))}
-        </div>
- 
       </div>
-      <div className="block-filter-sort">
-        <div className="filter-sort__title">Sắp xếp theo</div>
-        <div className="filter-sort__list-filter">
-          <a
-            className={`btn-filter button__sort ${activeFilter && activeFilter.value === 'highToLow' ? 'active' : ''}`}
-            onClick={() => handleSortClick('highToLow')}
+
+      {/* LOAD MORE */}
+      {maxIndex < filteredProducts.length && (
+        <div className="text-center">
+          <button
+            onClick={() => setMaxIndex((p) => p + 12)}
+            className="mt-6 px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            Giá Cao - Thấp
-          </a>
-          <a
-            className={`btn-filter button__sort ${activeFilter && activeFilter.value === 'lowToHigh' ? 'active' : ''}`}
-            onClick={() => handleSortClick('lowToHigh')}
-          >
-            Giá Thấp - Cao
-          </a>
-          <a
-            className={`btn-filter button__sort ${activeFilter && activeFilter.value === 'hotDeals' ? 'active' : ''}`}
-            onClick={() => handleSortClick('hotDeals')}
-          >
- 
-            Khuyến mãi HOT
-          </a>
-          <a
-            className={`btn-filter button__sort ${activeFilter && activeFilter.value === 'highRating' ? 'active' : ''}`}
-            onClick={() => handleSortClick('highRating')}
-          >
-            Đánh giá cao
-          </a>
-        </div>
-      </div>
-      <div className="block-filter-sort">
-        <div className="criteria-sort__title">Chọn theo tiêu chí</div>
-        <div className="criteria-sort__list-filter">
-          <a
-            className={`btn-filter button__sort ${activeFilter && activeFilter.min === 1 && activeFilter.max === 5000000 ? 'active' : ''}`}
-            onClick={() => filterByPriceRange(1, 5000000)}
-          >
-            Dưới 5 triệu
-          </a>
-          <a
-            className={`btn-filter button__sort ${activeFilter && activeFilter.min === 5000000 && activeFilter.max === 10000000 ? 'active' : ''}`}
-            onClick={() => filterByPriceRange(5000000, 10000000)}
-          >
-            5 - 10 triệu
-          </a>
-          <a
-            className={`btn-filter button__sort ${activeFilter && activeFilter.min === 10000000 && activeFilter.max === 20000000 ? 'active' : ''}`}
-            onClick={() => filterByPriceRange(10000000, 20000000)}
-          >
- 
-            10 - 20 triệu
-          </a>
-          <a
-            className={`btn-filter button__sort ${activeFilter && activeFilter.min === 20000000 && activeFilter.max === 30000000 ? 'active' : ''}`}
-            onClick={() => filterByPriceRange(20000000, 30000000)}
-          >
- 
-            20 - 30 triệu
-          </a>
-          <a
-            className={`btn-filter button__sort ${activeFilter && activeFilter.min === 30000000 && activeFilter.max === 1000000000 ? 'active' : ''}`}
-            onClick={() => filterByPriceRange(30000000, 1000000000)}
-          >
-            Trên 30 triệu
-          </a>
- 
-        </div>
-      </div>
- 
- 
-      <div className="block-filter-indexSort">
-        <div className="filter-indexSort-title">
-          <p>
-            {
-              filteredProducts.length > 0 ? (
-                <span>
-                  Hiển thị 1-{(maxIndex < filteredProducts.length) ? maxIndex : filteredProducts.length} trên tổng số {filteredProducts.length} sản phẩm
-                </span>
-              ) : (
-                <span>Không có sản phẩm nào phù hợp với lựa chọn của bạn</span>
-              )
-            }
-          </p>
- 
-        </div>
-        <div className="block-products-filter">
-          {filteredProducts.slice(0, Math.min(maxIndex, filteredProducts.length)).map((product, index) => {
-            return (
-              <Item
-                key={index}
-                id={product._id}
-                name={product.name}
-                image={product.variants[0].image}
-                sale={product.variants[0].sale}
-                price={product.price}
-                rating={product.rating}
-              />
-            )
-          })}
-        </div>
-        {(maxIndex < filteredProducts.length) &&
-          <div onClick={() => setMaxIndex(prev => prev + 10)} className="category-loadmore">
             Xem thêm {filteredProducts.length - maxIndex} sản phẩm
-          </div>
-        }
-      </div>
+          </button>
+        </div>
+      )}
     </div>
-  )
+  );
+
 }
  
 export default Category;

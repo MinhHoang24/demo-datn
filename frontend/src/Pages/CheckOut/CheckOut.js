@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState, useMemo } from 'react';
-import CartContext from '../../Contexts/CartContext';
+import { useCart } from '../../Contexts/CartContext';
 import './CheckOut.css';
 import apiService from '../../Api/Api';
 import { MdDelete } from "react-icons/md";
@@ -45,7 +45,7 @@ const Checkout = () => {
     }, [user]);
 
 
-    const { cart, selectedItems } = useContext(CartContext);
+    const { cart, selectedItems } = useCart();
     const [recipientName, setRecipientName] = useState('');
     const [address, setAddress] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');

@@ -1,0 +1,5 @@
+export const VERIFY_EMAIL_STATUS = {
+    LOADING: 'LOADING',
+    SUCCESS: 'SUCCESS',
+    ERROR: 'ERROR',
+};

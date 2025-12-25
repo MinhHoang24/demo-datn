@@ -14,18 +14,14 @@ const productSchema = new mongoose.Schema({
   image: { type: String, required: true }, 
   brand: {
     name: { type: String, required: true },
-    image: { type: String, required: true }
   },
 
   description: { type: [String], required: true },
   specifications: { type: [String], required: true },
 
   price: { type: Number, required: true },
-  sale: { type: Number, default: 0 }, 
 
-  quantity: { type: Number, default: 0 },
-
-  variants: { type: [variantInputSchema], default: [] },
+  variants: { type: [variantInputSchema], default: [], required: true },
 
   rating: { type: Number, default: 0 },
   star1: { type: Number, default: 0 },

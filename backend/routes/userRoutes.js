@@ -1,5 +1,13 @@
 const express = require('express');
-const { registerUser, loginUser, getProfile, updateProfile, changePassword } = require('../controllers/userController');
+const { 
+    registerUser, 
+    loginUser, 
+    getProfile, 
+    updateProfile, 
+    changePassword,
+    verifyEmail,
+    resendVerifyEmail
+} = require('../controllers/userController');
 const authMiddleware = require('../middlewares/userMiddleware');
 
 const router = express.Router();
@@ -18,5 +26,9 @@ router.put('/profile', authMiddleware, updateProfile);
 
 // Đổi mật khẩu
 router.put('/change-password', authMiddleware, changePassword);
+
+router.get('/verify-email', verifyEmail);
+
+router.post('/resend-verify-email', resendVerifyEmail);
 
 module.exports = router;

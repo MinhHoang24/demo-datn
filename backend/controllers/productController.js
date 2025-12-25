@@ -3,16 +3,40 @@ const { validateProduct } = require('../validation/product');
 const Comment = require('../models/commentModel');
 const Rating = require('../models/ratingModel');
 
+const withVariantMeta = (product) => {
+  if (!product) return product;
+
+  const variants = product.variants || [];
+
+  const totalQuantity = variants.reduce(
+    (sum, v) => sum + (v.quantity || 0),
+    0
+  );
+
+  const maxSale = variants.reduce(
+    (max, v) => Math.max(max, v.sale || 0),
+    0
+  );
+
+  return {
+    ...product.toObject(),
+    quantity: totalQuantity,
+    sale: maxSale,
+  };
+};
+
 // Route to get all products
 const getProducts = async (req, res) => {
   try {
     // Fetch all products from the database
     const products = await ProductModel.find();
 
+    const formattedProducts = products.map(withVariantMeta);
+
     // Return the products in the response
     res.status(200).json({ 
       message: 'Products fetched successfully', 
-      products 
+       formattedProducts
     });
   } catch (err) {
     // Handle errors and send a response with status 500
@@ -36,7 +60,7 @@ const getProductById = async (req, res) => {
 
     res.status(200).json({ 
       message: 'Product details fetched successfully', 
-      product 
+      product: withVariantMeta(product)
     });
   } catch (err) {
     res.status(500).json({ 
@@ -135,7 +159,9 @@ const getRelatedProducts = async (req, res) => {
           _id: { $ne: productId },    // Loại bỏ sản phẩm hiện tại
       }).limit(10); // Giới hạn 5 sản phẩm liên quan
 
-      res.status(200).json(relatedProducts);
+      const formattedRelated = relatedProducts.map(withVariantMeta);
+
+      res.status(200).json(formattedRelated);
   } catch (error) {
       console.error('Lỗi khi lấy sản phẩm liên quan:', error);
       res.status(500).json({ message: 'Đã xảy ra lỗi máy chủ' });

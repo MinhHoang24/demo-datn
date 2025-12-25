@@ -4,18 +4,22 @@ import { Link } from "react-router-dom";
 import apiService from "../../Api/Api";
 import { AuthContext } from "../../Contexts/AuthContext";
 import { useNavigate } from 'react-router-dom';
+import Loader from '../../Components/Loader/Loader.jsx';
 
 export default function LoginPage() {
-    const [identifier, setIdentifier] = useState(""); // Email hoặc số điện thoại
+    const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
     const [errors, setErrors] = useState({});
     const { login } = useContext(AuthContext);
+    const [needVerify, setNeedVerify] = useState(false);
+    const [resendMessage, setResendMessage] = useState("");
+    const navigate = useNavigate();
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+    const [isResending, setIsResending] = useState(false);  
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
-
-    const navigate = useNavigate();
 
     const validatePhoneNumber = (phoneNumber) => {
         return /^(0)[3|5|7|8|9][0-9]{8}$/.test(phoneNumber);
@@ -23,6 +27,18 @@ export default function LoginPage() {
 
     const validateEmail = (email) => {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
+
+    const handleResendVerify = async () => {
+        try {
+            setIsResending(true);
+            await apiService.resendVerifyEmail({ email: identifier });
+            setResendMessage("Đã gửi lại email xác nhận. Vui lòng kiểm tra email.");
+        } catch (err) {
+            setResendMessage("Không thể gửi lại email. Vui lòng thử lại.");
+        } finally {
+            setIsResending(false);
+        }
     };
 
     const handleSubmit = async (event) => {
@@ -57,6 +73,7 @@ export default function LoginPage() {
         };
 
         try {
+            setIsLoggingIn(true);
             const response = await apiService.loginUser(user);
 
             console.log(response.data.success);
@@ -88,7 +105,14 @@ export default function LoginPage() {
             }
         } catch (error) {
             console.error("Error during login:", error);
-            setErrors({ apiError: "Đã có lỗi xảy ra. Vui lòng thử lại sau." });
+            if (error.response?.status === 403) {
+                setNeedVerify(true);
+                setResendMessage("");
+            } else {
+                setErrors({ apiError: "Đã có lỗi xảy ra. Vui lòng thử lại sau." });
+            }
+        } finally {
+            setIsLoggingIn(false);
         }
     };
 
@@ -118,9 +142,35 @@ export default function LoginPage() {
                         {errors.password && <div className="error">{errors.password}</div>}
                     </div>
                     <div className="signup-link">Bạn chưa có tài khoản? <Link to="/register">Đăng ký ngay!</Link></div>
-                    <button className="button-submit" type="submit">Đăng nhập</button>
+                    <button 
+                        className="button-submit" 
+                        type="submit"
+                        disabled={isLoggingIn}
+                    >
+                        {isLoggingIn ? <Loader size={24} /> : "Đăng nhập"}
+                    </button>
                 </form>
-                {errors.apiError && <div className="error">{errors.apiError}</div>}
+                <div>
+                    {needVerify && (
+                        <div className="verify-warning flex flex-col items-center">
+                            <div className="flex gap-1 pt-10 justify-center items-center">
+                                <p>Email của bạn chưa được xác nhận.</p>
+                                <p
+                                    className={`underline cursor-pointer ${
+                                        isResending
+                                            ? "text-gray-400 cursor-not-allowed"
+                                            : "text-blue-600 hover:text-blue-300"
+                                    }`}
+                                    onClick={!isResending ? handleResendVerify : undefined}
+                                >
+                                    {isResending ? "Đang gửi..." : "Gửi lại email xác nhận?"}
+                                </p>
+                            </div>
+                            {resendMessage && <p>{resendMessage}</p>}
+                        </div>
+                    )}
+                    {errors.apiError && <div className="error">{errors.apiError}</div>}
+                </div>
             </div>
         </div>
     );

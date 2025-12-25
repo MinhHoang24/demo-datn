@@ -2,14 +2,13 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import './ItemSearch.css'
 
-
-
 function ItemSearch(props) {
   const formatPrice = (price) => {
     let priceString = price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
     return priceString.replace(/\s/g, '');
   }
-  const discountPrice = props.price * (1 - props.sale/100);
+  const sale = props.sale || 0;
+  const discountPrice = props.price * (1 - sale / 100);
   return (
     <div className='item1'>
       <div className="item-info">
