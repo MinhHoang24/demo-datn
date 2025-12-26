@@ -73,7 +73,10 @@ const apiService = {
     apiInstance.put(`/orders/${orderId}/status`, { status }),
   deleteOrder: (orderId) =>
     apiInstance.delete(`/orders/${orderId}`),
-  cancelOrder: (orderId) => apiInstance.patch(`/orders/${orderId}`), 
+  cancelOrder: (orderId) =>
+    apiInstance.patch(`/orders/${orderId}/cancel`),
+  cancelOrderByAdmin: (orderId) =>
+    apiInstance.patch(`/admin/orders/${orderId}/cancel`),
 
   // **Admin APIs**
   getAdminDashboard: () => apiInstance.get("/admin/dashboard"),

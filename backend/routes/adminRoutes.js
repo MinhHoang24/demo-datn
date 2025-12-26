@@ -16,6 +16,9 @@ const {
   updateOrderStatus,
   uploadImage,
 } = require('../controllers/adminController');
+const {
+  cancelOrderByAdmin
+} = require('../controllers/orderController');
 
 // Lấy thông tin tổng quan admin
 router.get('/', protect, isAdmin, getAdminDashboard);
@@ -45,6 +48,12 @@ router.post('/upload/upload-image', uploadImage);
 //Quản lý đơn hàng
 router.get('/order', protect, isAdmin, getAllOrders);
 router.put('/order/update-status', protect, isAdmin, updateOrderStatus);
+router.patch(
+  "/orders/:orderId/cancel",
+  protect,
+  isAdmin,
+  cancelOrderByAdmin
+);
 
 // Route để lấy thống kê đơn hàng
 // router.get('/order/statistics', protect, isAdmin, getOrderStatistics);

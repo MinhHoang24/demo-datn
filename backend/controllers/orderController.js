@@ -211,11 +211,51 @@ const cancelOrder = async (req, res) => {
   }
 };
 
+// ADMIN hủy đơn hàng
+const cancelOrderByAdmin = async (req, res) => {
+  const { orderId } = req.params;
+
+  try {
+    const order = await OrderModel.findById(orderId).populate("items.productId");
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // ❌ Không cho hủy đơn đã giao
+    if (order.orderStatus === "Delivered") {
+      return res.status(400).json({ message: "Không thể hủy đơn đã giao" });
+    }
+
+    // Hoàn kho
+    for (const item of order.items) {
+      const product = await ProductModel.findById(item.productId._id);
+      if (!product) continue;
+
+      const variant = product.variants.find(
+        (v) => v.color === item.variant.color
+      );
+
+      if (variant) {
+        variant.quantity += item.quantity;
+        await product.save();
+      }
+    }
+
+    order.orderStatus = "Cancelled";
+    await order.save();
+
+    res.status(200).json({ message: "Admin hủy đơn hàng thành công" });
+  } catch (error) {
+    console.error("Admin cancel order error:", error);
+    res.status(500).json({ message: "Cancel order failed" });
+  }
+};
 
 module.exports = {
   createOrder,
   getOrders,
   updateOrderStatus,
   deleteOrder,
-  cancelOrder
+  cancelOrder,
+  cancelOrderByAdmin
 };

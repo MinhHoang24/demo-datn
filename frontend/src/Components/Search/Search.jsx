@@ -49,7 +49,7 @@ function Search() {
           try {
               // Gọi API để lấy danh sách sản phẩm
               const response = await apiService.getProducts();
-              const products = response.data.products || [];
+              const products = response.data.formattedProducts || [];
   
               // Lọc sản phẩm dựa trên searchValue
               const filteredResults = products.filter((product) => {
@@ -94,25 +94,51 @@ function Search() {
                 placement="bottom"
                 visible={showResult && searchResult.length > 0}
                 render={(attrs) => (
-                    <div className="search-results" tabIndex="-1" {...attrs}>
-                        <div>
-                            {loading ? (
-                                <div>Loading...</div>
-                            ) : (
-                                searchResult.map((item, index) => (
-                                    <div key={index} className="">
-                                        <ItemSearch
-                                            key={index}
-                                            id={item._id}
-                                            name={item.name}
-                                            image={item.variants[0].image}
-                                            sale={item.variants[0].sale}
-                                            price={item.price}
-                                        />
-                                    </div>
-                                ))
-                            )}
+                    <div
+                        tabIndex="-1"
+                        {...attrs}
+                        className="
+                        mt-1
+                        w-fit
+                        rounded-md
+                        bg-white
+                        shadow-lg
+                        border border-gray-200
+                        "
+                    >
+                        {/* LIST */}
+                        <div
+                        className="
+                            max-h-[500px]
+                            overflow-y-auto
+                            overflow-x-hidden
+                            divide-y divide-gray-100
+                        "
+                        >
+                        {loading ? (
+                            <div className="px-4 py-3 text-sm text-gray-500">
+                            Đang tìm kiếm...
+                            </div>
+                        ) : (
+                            searchResult.map((item) => (
+                            <ItemSearch
+                                key={item._id}
+                                id={item._id}
+                                name={item.name}
+                                image={item.variants?.[0]?.image}
+                                sale={item.sale}
+                                price={item.price}
+                            />
+                            ))
+                        )}
                         </div>
+
+                        {/* FOOTER khi nhiều hơn 3 kết quả */}
+                        {searchResult.length > 5 && (
+                        <div className="border-t border-gray-100 px-3 py-2 text-center text-xs text-gray-400">
+                            Cuộn để xem thêm
+                        </div>
+                        )}
                     </div>
                 )}
                 onClickOutside={handleHideResult}

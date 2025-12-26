@@ -77,8 +77,7 @@ export const CartProvider = ({ children }) => {
   /**
    * 🧹 Clear cart (optional)
    */
-  const clearCart = async () => {
-    await apiInstance.clearCart();
+  const clearCart = () => {
     setCart([]);
     setSelectedItems([]);
   };

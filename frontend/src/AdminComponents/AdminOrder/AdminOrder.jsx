@@ -24,6 +24,28 @@ const AdminOrder = () => {
   const [modalChild, setModalChild] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const handleCancelOrder = async (record) => {
+    Modal.confirm({
+      title: "Xác nhận hủy đơn hàng",
+      content: `Bạn có chắc muốn hủy đơn ${record.maDonHang}?`,
+      icon: <ExclamationCircleFilled />,
+      okText: "Hủy đơn",
+      cancelText: "Thoát",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await apiService.cancelOrderByAdmin(record.maDonHang);
+          message.success("Đã hủy đơn hàng");
+          onRefresh();
+        } catch (err) {
+          message.error(
+            err.response?.data?.message || "Hủy đơn hàng thất bại"
+          );
+        }
+      },
+    });
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -236,6 +258,28 @@ const AdminOrder = () => {
       sorter: (a, b) => a.orderStatus.localeCompare(b.orderStatus),
       sortDirections: ["descend", "ascend"],
     },
+    {
+      title: "Hủy đơn",
+      key: "cancel",
+      align: "center",
+      render: (_, record) =>
+        record.orderStatus !== "Cancelled" &&
+        record.orderStatus !== "Delivered" ? (
+          <Button
+            danger
+            size="small"
+            icon={<DeleteFilled />}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCancelOrder(record);
+            }}
+          >
+            Hủy
+          </Button>
+        ) : (
+          <span style={{ color: "#999" }}>—</span>
+        ),
+    }
   ];
 
   return (

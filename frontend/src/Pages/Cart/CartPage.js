@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCartShopping } from "@fortawesome/free-solid-svg-icons";
 import { MdDelete } from "react-icons/md";
-import { TiArrowBack } from "react-icons/ti";
 import Loader from "../../Components/Loader/Loader";
 import Toast from "../../Components/Toast/Toast";
 import { useCart } from "../../Contexts/CartContext";
@@ -18,7 +17,6 @@ export default function CartPage() {
     syncCartFromServer,
   } = useCart();
 
-  const [showPayment, setShowPayment] = useState(false);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -156,27 +154,12 @@ export default function CartPage() {
                 </button>
               </Link>
 
-              {!showPayment ? (
-                <button
-                  onClick={() => setShowPayment(true)}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg"
-                >
-                  Thanh toán
-                </button>
-              ) : (
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={handleCheckout}
-                    className="px-6 py-3 bg-green-600 text-white rounded-lg"
-                  >
-                    Thanh toán khi nhận hàng
-                  </button>
-                  <TiArrowBack
-                    onClick={() => setShowPayment(false)}
-                    className="text-2xl cursor-pointer"
-                  />
-                </div>
-              )}
+              <button
+                onClick={handleCheckout}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg"
+              >
+                Thanh toán
+              </button>
             </div>
           </>
         )}

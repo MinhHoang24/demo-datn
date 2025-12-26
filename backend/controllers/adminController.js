@@ -8,6 +8,7 @@ const upload = require('../config/uploadConfig');
 const cloudinary = require('../config/cloudinaryConfig');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
+const { withVariantMeta } = require('../utils/productMeta');
 
 // Hàm xử lý upload ảnh lên Cloudinary
 const uploadImage = (req, res) => {
@@ -207,14 +208,18 @@ const changeAdminPassword = async (req, res) => {
 // Hiển thị tất cả sản phẩm
 const manageProducts = async (req, res) => {
   try {
-    const products = await Product.find(); 
+    const products = await Product.find();
+    const formattedProducts = products.map(withVariantMeta);
 
-    console.log('Lấy thành công tất cả sản phẩm!');
-    res.json({ message: 'Get All Products', products }); 
-
+    res.json({
+      message: 'Get All Products',
+      products: formattedProducts,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error managing products', error: error.message });
+    res.status(500).json({
+      message: 'Error managing products',
+      error: error.message,
+    });
   }
 };
 
@@ -222,6 +227,12 @@ const manageProducts = async (req, res) => {
 const createProduct = async (req, res) => {
   try {
     const productData = req.body;
+
+    if (!Array.isArray(productData.variants) || productData.variants.length === 0) {
+      return res.status(400).json({
+        message: "Sản phẩm phải có ít nhất 1 biến thể",
+      });
+    }
 
     // ⭐ Làm sạch description + specifications để loại dòng trống
     productData.description = (productData.description || []).filter(x => x.trim() !== "");
