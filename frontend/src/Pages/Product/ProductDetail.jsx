@@ -13,10 +13,14 @@ import {
 } from "../../Components/product-detail";
 
 import LoginPopup from "../../Components/LoginPopUp/LoginPopUp";
+import Loader from "../../Components/Loader/Loader";
 
 export default function ProductDetail() {
   const { productId } = useParams();
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loadingRelated, setLoadingRelated] = useState(false);
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,7 +39,7 @@ export default function ProductDetail() {
       try {
         setLoading(true);
         const res = await apiService.getProductById(productId);
-
+        console.log(res);
         if (mounted) {
           setProduct(res.data.product);
           setLoading(false);
@@ -54,13 +58,32 @@ export default function ProductDetail() {
     };
   }, [productId]);
 
+  useEffect(() => {
+    if (!product?._id) return;
+
+    const fetchRelated = async () => {
+      try {
+        setLoadingRelated(true);
+        const res = await apiService.getRelatedProducts(product._id);
+        setRelatedProducts(res.data || []);
+      } catch (err) {
+        console.error("Fetch related products failed", err);
+        setRelatedProducts([]);
+      } finally {
+        setLoadingRelated(false);
+      }
+    };
+
+    fetchRelated();
+  }, [product?._id]);
+
   const openPopup = () => setIsPopupOpen(true);
   const closePopup = () => setIsPopupOpen(false);
 
   if (loading) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center text-gray-500">
-        Đang tải sản phẩm...
+        <Loader size={48} />
       </div>
     );
   }
@@ -110,17 +133,17 @@ export default function ProductDetail() {
           />
         </div>
 
-        {/* RELATED PRODUCTS */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <RelatedProducts products={product.relatedProducts || []} />
-        </div>
-
         {/* REVIEWS */}
         <div className="bg-white p-6 rounded-xl shadow">
           <ProductReviews
             product={product}
             onOpenLogin={openPopup}
           />
+        </div>
+
+        {/* RELATED PRODUCTS */}
+        <div className="bg-white p-6 rounded-xl shadow">
+          <RelatedProducts products={relatedProducts} loading={loadingRelated} />
         </div>
       </div>
 

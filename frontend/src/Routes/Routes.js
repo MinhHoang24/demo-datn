@@ -1,44 +1,71 @@
-import Home from '../Pages/Home/Home';
-import Product from '../Pages/Product/ProductDetail';
-import RegisterPage from '../Pages/RegisterAccount/RegisterAccount';
-import LoginPage from '../Pages/Login/Login';
-import Admin from '../Pages/AdminPage/AdminPage';
-import userLayout from '../Pages/UserLayout/UserLayout';
-import adminLayout from '../Pages/AdminPage/AdminLayout';
-import Category from '../Pages/Category/Category'
-import UserProfile from '../Pages/UserProfile/UserProfile';
-import CheckOrder from '../Pages/CheckOrder/CheckOrder';
-import Checkout from '../Pages/CheckOut/CheckOut';
-import Cart from '../Pages/Cart/CartPage';
-import VerifyEmail from '../Pages/VerifyEmail/VerifyEmail';
+import UserLayout from "../Pages/UserLayout/UserLayout";
+import AdminLayout from "../Pages/AdminPage/AdminLayout";
 
-// public Routes
-const publicRoutes=[
-    {path: '/admin', component:Admin, layout: adminLayout},
-    {path: '/', component: Home, layout: userLayout},
-    {path: '/product', component: Product, layout: userLayout, childPath: ':productId'},
-    {path: '/register', component:RegisterPage, layout: userLayout},
-    {path: '/login', component:LoginPage, layout: userLayout},
-    {path: '/DienThoai', component: Category, layout: userLayout, childPath: ':brandName', category: 'DienThoai'},
-    {path: '/Laptop', component: Category, layout: userLayout, childPath: ':brandName', category: 'Laptop'},
-    {path: '/TaiNghe', component: Category, layout: userLayout, childPath: ':brandName', category: 'TaiNghe'},
-    {path: '/BanPhim', component: Category, layout: userLayout, childPath: ':brandName', category: 'BanPhim'},
-    {path: '/PhuKien', component: Category, layout: userLayout, childPath: ':brandName', category: 'PhuKien'},
-    {path: '/Chuot', component: Category, layout: userLayout, childPath: ':brandName', category: 'Chuot'},
-    {path: '/Tivi', component: Category, layout: userLayout, childPath: ':brandName', category: 'Tivi'},
-    {path: '/MayTinhBang', component: Category, layout: userLayout, childPath: ':brandName', category: 'MayTinhBang'},
-    { path: '/verify-email', component: VerifyEmail, layout: userLayout },
+import Home from "../Pages/Home/Home";
+import Product from "../Pages/Product/ProductDetail";
+import Category from "../Pages/Category/Category";
+import Cart from "../Pages/Cart/CartPage";
+import Checkout from "../Pages/CheckOut/CheckOut";
+import LoginPage from "../Pages/Login/Login";
+import RegisterPage from "../Pages/RegisterAccount/RegisterAccount";
+import UserProfile from "../Pages/UserProfile/UserProfile";
+import OrderHistory from "../Pages/OrderHistory/OrderHistory";
+import Admin from "../Pages/AdminPage/AdminPage";
+import VerifyOtp from "../Pages/VerifyOtp/VerifyOtp";
 
-    {path: '/profile',component: UserProfile, layout: userLayout},
-    {path: '/cart', component: Cart, layout: userLayout },
-    {path: '/checkout', component: Checkout, layout: userLayout},
-    {path: '/checkorder', component: CheckOrder, layout: userLayout},
+export const publicRoutes = [
+  // ================= USER LAYOUT =================
+  {
+    layout: UserLayout,
+    routes: [
+      { path: "/", element: <Home /> },
+
+      // Product detail
+      { path: "/product/:productId", element: <Product /> },
+
+      // ===== CATEGORY ROUTES (FULL) =====
+      { path: "/DienThoai", element: <Category category="DienThoai" /> },
+      { path: "/DienThoai/:brandName", element: <Category category="DienThoai" /> },
+
+      { path: "/Laptop", element: <Category category="Laptop" /> },
+      { path: "/Laptop/:brandName", element: <Category category="Laptop" /> },
+
+      { path: "/TaiNghe", element: <Category category="TaiNghe" /> },
+      { path: "/TaiNghe/:brandName", element: <Category category="TaiNghe" /> },
+
+      { path: "/BanPhim", element: <Category category="BanPhim" /> },
+      { path: "/BanPhim/:brandName", element: <Category category="BanPhim" /> },
+
+      { path: "/PhuKien", element: <Category category="PhuKien" /> },
+      { path: "/PhuKien/:brandName", element: <Category category="PhuKien" /> },
+
+      { path: "/Chuot", element: <Category category="Chuot" /> },
+      { path: "/Chuot/:brandName", element: <Category category="Chuot" /> },
+
+      { path: "/Tivi", element: <Category category="Tivi" /> },
+      { path: "/Tivi/:brandName", element: <Category category="Tivi" /> },
+
+      { path: "/MayTinhBang", element: <Category category="MayTinhBang" /> },
+      { path: "/MayTinhBang/:brandName", element: <Category category="MayTinhBang" /> },
+
+      // ===== USER FEATURES =====
+      { path: "/cart", element: <Cart /> },
+      { path: "/checkout", element: <Checkout /> },
+      { path: "/orders", element: <OrderHistory /> },
+      { path: "/profile", element: <UserProfile /> },
+
+      // ===== AUTH =====
+      { path: "/login", element: <LoginPage /> },
+      { path: "/register", element: <RegisterPage /> },
+      { path: "/verify-otp", element: <VerifyOtp /> },
+    ],
+  },
+
+  // ================= ADMIN LAYOUT =================
+  {
+    layout: AdminLayout,
+    routes: [
+      { path: "/admin", element: <Admin /> },
+    ],
+  },
 ];
-
-const privateRoutes=[
-    
-];
-
-export {
-    publicRoutes, privateRoutes
-}

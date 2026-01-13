@@ -1,222 +1,313 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import "./Header.css";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Search from "../Search/Search";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBagShopping, faCircleUser, faList, faTruckField } from '@fortawesome/free-solid-svg-icons';
-import HeadlessTippy from '@tippyjs/react/headless';
-import Tippy from '@tippyjs/react/headless';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBagShopping,
+  faCircleUser,
+  faList,
+  faTruckField,
+  faBell,
+  faCaretDown,
+  faRightFromBracket,
+  faUserGear,
+} from "@fortawesome/free-solid-svg-icons";
+import HeadlessTippy from "@tippyjs/react/headless";
 import MenuBar from "../MenuBar/MenuBar";
-import 'tippy.js/dist/tippy.css';
 import { AuthContext } from "../../Contexts/AuthContext";
-import { faBell, faComment } from '@fortawesome/free-solid-svg-icons';
-import { useCart } from "../../Contexts/CartContext";
+import apiService from "../../Api/Api";
+import { io } from "socket.io-client";
 
-function Header() {
-    const { cart, syncCartFromServer } = useCart();
+/* =========================
+   SOCKET
+========================= */
+const socket = io("http://localhost:5000", {
+  autoConnect: false,
+});
 
-    useEffect(() => {
-        syncCartFromServer();
-    }, []);
+export default function Header() {
+  const navigate = useNavigate();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { isLoggedIn, user, logout } = useContext(AuthContext);
 
-    const cartCount = cart.reduce(
-        (total, item) => total + (item.quantity || 0),
-        0
-    );
+  const [isMenu, setIsMenu] = useState(false);
+  const [showNoti, setShowNoti] = useState(false);
 
-    useEffect(() => {
-        const role = localStorage.getItem("role");
-        console.log("[useEffect] role from localStorage:", role);
-        if(role === "admin") {
-          console.log("[useEffect] Redirecting admin to /admin");
-          window.location.href = "/admin";
-        }
-    }, []); // Thêm [] để useEffect chạy 1 lần lúc mount
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-    const [isMenu, setIsMenu] = useState(false);
-    const { isLoggedIn, user, logout } = useContext(AuthContext);
-    const [isRead, setIsRead] = useState(true); 
+  const socketAuthed = useRef(false);
 
-    const handleLogout = () => {
-        console.log("[handleLogout] User logging out:", user);
-        logout();
-        window.location.replace('/');
-        localStorage.removeItem('phoneNumber');
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userID');
-        console.log("[handleLogout] localStorage cleared, redirected to /");
+  /* =========================
+     REDIRECT ADMIN
+  ========================= */
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role === "admin") {
+      window.location.href = "/admin";
+    }
+  }, []);
+
+  /* =========================
+     FETCH NOTIFICATIONS
+  ========================= */
+  const fetchNotifications = async () => {
+    try {
+      const res = await apiService.getNotifications({ page: 1, limit: 20 });
+      setNotifications(res.data.notifications || []);
+      setUnreadCount(res.data.unreadCount || 0);
+    } catch (e) {
+      console.error("Fetch notifications failed:", e);
+    }
+  };
+
+  /* =========================
+     SOCKET LISTEN
+  ========================= */
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+
+    if (!socket.connected) socket.connect();
+
+    if (!socketAuthed.current) {
+      socket.emit("authenticate", { token });
+      socketAuthed.current = true;
+    }
+
+    socket.on("notification:new", (noti) => {
+      setNotifications((prev) => [noti, ...prev]);
+      setUnreadCount((c) => c + 1);
+    });
+
+    return () => {
+      socket.off("notification:new");
     };
+  }, [isLoggedIn]);
 
-    const [visible, setVisible] = useState(false);
-    const [message, setMessage] = useState('');
-    
-    // useSignalR(showMessage, '');
+  /* =========================
+     CLICK NOTIFICATION
+  ========================= */
+  const handleClickNotification = async (n) => {
+    try {
+      if (!n.isRead) {
+        await apiService.markNotificationRead(n._id);
+        setNotifications((prev) =>
+          prev.map((x) =>
+            x._id === n._id ? { ...x, isRead: true } : x
+          )
+        );
+        setUnreadCount((c) => Math.max(0, c - 1));
+      }
 
-    const handleNewMessage = () => {
-        // khi có thông báo mới thì setIsRead(false) để hiện dấu chấm đỏ
-        setIsRead(true);
-        if(message !== ''){
-            setVisible(!visible);
-            console.log("[handleNewMessage] Toggled message visibility:", !visible);
-        }
-    };
+      if (n.data?.orderId) {
+        navigate(`/orders`);
+      }
+      setShowNoti(false);
+    } catch (e) {
+      console.error("Mark notification failed:", e);
+    }
+  };
 
-    console.log("[Render] isLoggedIn:", isLoggedIn, "user:", user, "message:", message, "visible:", visible);
+  /* =========================
+     LOGOUT
+  ========================= */
+  const handleLogout = () => {
+    logout();
+    localStorage.clear();
+    window.location.replace("/");
+  };
 
-    return (
-        <div className="header">
-            <div className="menu">
-                <div className="logo">
-                    <img src={"https://d1csarkz8obe9u.cloudfront.net/posterpreviews/hi-tech-logo-green-design-template-d57e7fb993808c268150e0da8633654e_screen.jpg?ts=1584477855"} alt="Logo" />
-                    <span className="about-name">
-                        <Link to="/"> <b> MH SHOP </b></Link>
-                    </span>
-                </div>
-                
-                <HeadlessTippy
-                    visible={isMenu}
-                    interactive
-                    placement="bottom-end"
-                    onClickOutside={() => {
-                      console.log("[HeadlessTippy] Click outside - close menu");
-                      setIsMenu(false);
-                    }} 
-                    delay={[0, 700]}
-                    render={(attrs) => (
-                        <div className="menuBar" tabIndex="-1" {...attrs}>    
-                            <MenuBar />         
-                        </div>
-                    )}
-                >
-                    <div className="menu-list1" onClick={() => {
-                        setIsMenu(!isMenu);
-                        console.log("[menu-list1] Menu toggled to", !isMenu);
-                    }}>
-                        <div className='my-icon'>
-                            <FontAwesomeIcon icon={faList} />  
-                        </div>
-                        <div className="box-content">
-                            <span className="title-y">DANH MỤC</span>
-                        </div>
-                    </div>
-                </HeadlessTippy>
-                
-                <div className="menu-list">
-                    <Search />
-                </div>
-                <Link to="/checkout" className="about-delivery-tracking" >
-                    <div className="box-icon">
-                        <div className='my-icon'>
-                            <FontAwesomeIcon icon={faTruckField} className='fa-h-24px' />
-                        </div>
-                    </div>
-                    <div className="box-content">
-                        <p className="title-y">Đơn hàng</p>
-                    </div>
-                </Link>
-                <div className="menu-list">
-                    <Link to="/cart" className="relative flex items-center gap-2">
-                        {/* ICON CART */}
-                        <div className="relative">
-                        <FontAwesomeIcon
-                            icon={faBagShopping}
-                            className="fa-h-24px text-white"
-                        />
+  return (
+    <header className="fixed top-0 z-[10000] w-full h-20 bg-[#0065b3] flex items-center">
+      <div className="w-full flex items-center justify-around gap-8 px-4">
 
-                        {/* CART COUNT BADGE */}
-                        {cartCount > 0 && (
-                            <span
-                            className="
-                                absolute
-                                -top-2
-                                -right-2
-                                min-w-[18px]
-                                h-[18px]
-                                px-1
-                                flex
-                                items-center
-                                justify-center
-                                rounded-full
-                                bg-red-500
-                                text-white
-                                text-[11px]
-                                font-bold
-                                leading-none
-                            "
-                            >
-                            {cartCount}
-                            </span>
-                        )}
-                        </div>
+        {/* LOGO */}
+        <Link to="/" className="flex items-center gap-2 shrink-0">
+          <img
+            src="https://d1csarkz8obe9u.cloudfront.net/posterpreviews/hi-tech-logo-green-design-template-d57e7fb993808c268150e0da8633654e_screen.jpg?ts=1584477855"
+            alt="Logo"
+            className="h-11 hidden lg:block"
+          />
+          <span className="font-bold text-white text-lg">
+            MH SHOP
+          </span>
+        </Link>
 
-                        {/* TEXT */}
-                        <span className="title-y">Giỏ hàng</span>
-                    </Link>
-                    </div>
-                
-                <div>
-                    {isLoggedIn ? (
-                        <div style={{ backgroundColor: '#0065b3' }} className="box-user">
-                            <div className="box-icon">
-                                <Link to='/profile' style={{ display: 'inline-block' }}>
-                                    <div className="my-icon">
-                                        <FontAwesomeIcon icon={faCircleUser} style={{ fontSize: '23px' }} className='avatar' />
-                                    </div>
-                                </Link>
-                            </div>
-                            <span className="title-y">
-                                <Link to='/profile'>{user}</Link>
-                            </span>
-                            <div className="notification-icon" style={{ backgroundColor: '0065b3' }}>
-                                <Tippy
-                                interactive={true}
-                                visible={visible}
-                                placement="bottom"
-                                onClickOutside={() => {
-                                    console.log("[Tippy] Click outside notification - hiding");
-                                    setVisible(false);
-                                }}
-                                render={attrs => (
-                                    <div className="tooltip-noti" {...attrs}>
-                                    {message}
-                                    </div>
-                                )}
-                                >
-                                <button onClick={handleNewMessage} className="notification-icon">
-                                    <FontAwesomeIcon icon={faBell} style={{ fontSize: '23px' }} className='icon-noti' />
-                                    {!isRead && <FontAwesomeIcon icon={faComment} className="unread-dot" />}
-                                </button>
-                                </Tippy>
-                            </div>
-                        </div>
-                    ) : null}
-                </div>
-
-                <div>
-                    {isLoggedIn ? (
-                        <div className="login-btn" onClick={handleLogout}>
-                            <div className="header-item about-member">
-                                <div className="box-content">
-                                    <span className="title-y">Đăng xuất</span>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <Link to='/login' style={{ textDecoration: 'none' }}>
-                            <div className="login-btn">
-                                <div className="header-item about-member">
-                                    <div className="box-content">
-                                        <span className="title-y" style={{ textDecoration: 'none'}}>Đăng nhập</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </Link>
-                    )}
-                </div>
+        {/* MENU */}
+        <HeadlessTippy
+          visible={isMenu}
+          interactive
+          placement="bottom-start"
+          onClickOutside={() => setIsMenu(false)}
+          render={(attrs) => (
+            <div
+              tabIndex="-1"
+              {...attrs}
+              className="bg-white rounded-xl shadow-lg"
+            >
+              <MenuBar />
             </div>
-        </div>
-    );
-}
+          )}
+        >
+          <button
+            onClick={() => setIsMenu((v) => !v)}
+            className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg hover:bg-white hover:text-[#0065b3] transition"
+          >
+            <FontAwesomeIcon icon={faList} />
+            <span className="hidden md:block">Danh mục</span>
+          </button>
+        </HeadlessTippy>
 
-export default Header;
+        {/* SEARCH */}
+        <div className="flex-1 max-w-[300px]">
+          <Search />
+        </div>
+
+        {/* ORDERS */}
+        <Link
+          to="/orders"
+          className="flex items-center gap-2 text-white hover:scale-105 transition"
+        >
+          <FontAwesomeIcon icon={faTruckField} />
+          <span className="hidden md:block">Đơn hàng</span>
+        </Link>
+
+        {/* CART */}
+        <Link
+          to="/cart"
+          className="flex items-center gap-2 text-white hover:scale-105 transition"
+        >
+          <FontAwesomeIcon icon={faBagShopping} />
+          <span className="hidden md:block">Giỏ hàng</span>
+        </Link>
+
+        {/* LOGIN / USER ACTIONS */}
+        {!isLoggedIn ? (
+          /* ===== CHƯA LOGIN ===== */
+          <Link
+            to="/login"
+            className="bg-white text-black hover:text-[#0065b3] px-4 py-2 rounded-lg transition font-medium"
+          >
+            Đăng nhập
+          </Link>
+        ) : (
+          /* ===== ĐÃ LOGIN ===== */
+          <div className="flex items-center gap-3 bg-white/20 px-3 py-2 rounded-xl">
+            {/* 🔔 NOTIFICATION */}
+            <div className="relative pr-2">
+              <button
+                onClick={() => {
+                  setShowNoti((v) => !v);
+                  fetchNotifications();
+                }}
+                className="relative text-white hover:scale-110 transition"
+              >
+                <FontAwesomeIcon icon={faBell} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-2 -right-2 min-w-[16px] h-[16px]
+                    bg-red-500 text-white text-[10px] flex items-center justify-center
+                    rounded-full px-1">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* NOTIFICATION DROPDOWN */}
+              {showNoti && (
+                <div className="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-xl overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b font-semibold">
+                    Thông báo
+                  </div>
+
+                  <div className="max-h-[320px] overflow-y-auto">
+                    {notifications.length === 0 && (
+                      <div className="p-4 text-sm text-gray-400">
+                        Không có thông báo
+                      </div>
+                    )}
+
+                    {notifications.map((n) => (
+                      <div
+                        key={n._id}
+                        onClick={() => handleClickNotification(n)}
+                        className={`px-4 py-3 border-b cursor-pointer hover:bg-gray-100 ${
+                          !n.isRead ? "bg-blue-50" : ""
+                        }`}
+                      >
+                        <p className="text-sm font-medium text-gray-800">
+                          {n.title}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {n.message}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ⋮ DROPDOWN LOGOUT */}
+            <HeadlessTippy
+              visible={showUserMenu}
+              interactive
+              placement="bottom-end"
+              onClickOutside={() => setShowUserMenu(false)}
+              render={(attrs) => (
+                <div
+                  tabIndex="-1"
+                  {...attrs}
+                  className="w-48 bg-white rounded-xl shadow-xl overflow-hidden border"
+                >
+                  {/* USER INFO */}
+                  <div className="px-4 py-3 border-b">
+                    <p className="text-sm font-semibold text-gray-800">
+                      {user}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Tài khoản cá nhân
+                    </p>
+                  </div>
+
+                  {/* PROFILE */}
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      navigate("/profile");
+                    }}
+                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <FontAwesomeIcon icon={faUserGear} />
+                    Hồ sơ cá nhân
+                  </button>
+
+                  {/* LOGOUT */}
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    <FontAwesomeIcon icon={faRightFromBracket} />
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
+            >
+              <button
+                onClick={() => setShowUserMenu((v) => !v)}
+                className="flex items-center gap-1 text-white hover:opacity-80 transition"
+              >
+                <FontAwesomeIcon icon={faCaretDown} />
+              </button>
+            </HeadlessTippy>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}

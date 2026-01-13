@@ -53,4 +53,9 @@ const changePasswordSchema = Joi.object({
     newPassword: Joi.string().min(6).required()
 });
 
-module.exports = { registerSchema, loginSchema, updateProfileSchema, changePasswordSchema };
+const verifyOtpSchema = Joi.object({
+  email: Joi.string().email().required(),
+  otp: Joi.string().length(6).required(),
+});
+
+module.exports = { registerSchema, loginSchema, updateProfileSchema, changePasswordSchema, verifyOtpSchema };

@@ -1,320 +1,138 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Button, Modal, Space, Table, message, Input } from "antd";
-import { SearchOutlined, DeleteFilled, ExclamationCircleFilled } from "@ant-design/icons";
-import Highlighter from "react-highlight-words";
-import OrderDetails from "./OderDetails.jsx";
-import axios from 'axios';  // Import axios for API requests
-import apiService from '../../Api/Api.js'
+import React, { useEffect, useMemo, useState } from "react";
+import { Table, Tag, Modal, message, Select, Space } from "antd";
+import apiService from "../../Api/Api";
+import {
+  ORDER_STATUS_LABEL,
+  ORDER_STATUS_COLOR,
+} from "../../Constants/orderStatus";
+import AdminOrderDetail from "./OderDetails";
 
-// Helper function to format date
-function formatDate(isoString) {
-  const date = new Date(isoString);
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-  return `${hours}:${minutes}:${seconds}\n${day}/${month}/${year}` ;
-}
+const { Option } = Select;
 
-const AdminOrder = () => {
-  const [refresh, setRefresh] = useState(false);
-  const [orders, setOrders] = useState([]);
-  const [modalChild, setModalChild] = useState(null);
+const formatDate = (iso) =>
+  new Date(iso).toLocaleString("vi-VN");
+
+const formatCurrency = (v) =>
+  Number(v || 0).toLocaleString("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  });
+
+export default function AdminOrder() {
   const [loading, setLoading] = useState(false);
+  const [orders, setOrders] = useState([]);
 
-  const handleCancelOrder = async (record) => {
-    Modal.confirm({
-      title: "Xác nhận hủy đơn hàng",
-      content: `Bạn có chắc muốn hủy đơn ${record.maDonHang}?`,
-      icon: <ExclamationCircleFilled />,
-      okText: "Hủy đơn",
-      cancelText: "Thoát",
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        try {
-          await apiService.cancelOrderByAdmin(record.maDonHang);
-          message.success("Đã hủy đơn hàng");
-          onRefresh();
-        } catch (err) {
-          message.error(
-            err.response?.data?.message || "Hủy đơn hàng thất bại"
-          );
-        }
-      },
-    });
+  const [openDetail, setOpenDetail] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+
+  // 🔹 FILTER STATE
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
+  /* ================= FETCH ================= */
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const res = await apiService.getAdminOrders({});
+      setOrders(res.data.orders || []);
+    } catch {
+      message.error("Không thể tải danh sách đơn hàng");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        // Lấy token từ localStorage hoặc cookie
-        const token = localStorage.getItem('authToken'); 
+    fetchOrders();
+  }, []);
 
-        if (!token) {
-          message.error('Bạn cần đăng nhập để truy cập dữ liệu!');
-          return;
-        }
-        // Gửi yêu cầu API với Authorization header
-        const response = await apiService.getAllOrders();
-        // Map the order data for table display
-        const ordersData = response.data.map(order => ({
-          maDonHang: order._id,
-          userName: order.userId?.userName,
-          ngayDat: formatDate(order.createdAt),
-          items: order.items,
-          paymentMethod: order.paymentMethod ,
-          paymentStatus: order.paymentStatus,
-          orderStatus :order.orderStatus,
-          totalAmount: order.totalAmount,
-          order: order,
-        }));
-        
-        console.log('Dữ liệu đơn hàng nhận được:', ordersData);
-        setOrders(ordersData);
-      } catch (error) {
-        console.error(error);
-        message.error('Không thể lấy dữ liệu đơn hàng!');
-      } finally {
-         setLoading(false);
-      }
-    };
-
-    fetchData();
-}, [refresh]);
-
-
-  const onRefresh = () => {
-    setRefresh(prev => !prev);
+  const openModal = (orderId) => {
+    setSelectedOrderId(orderId);
+    setOpenDetail(true);
   };
 
-  const deleteOrder = async (record) => {
-    try {
-      await apiService.deleteOrder(record._id)
+  /* ================= FILTER LOGIC ================= */
+  const filteredOrders = useMemo(() => {
+    if (statusFilter === "ALL") return orders;
+    return orders.filter((o) => o.status === statusFilter);
+  }, [orders, statusFilter]);
 
-      const updatedOrders = orders.filter(order => order.maDonHang !== record.maDonHang);
-      setOrders(updatedOrders);
-      message.success(`Đã hủy đơn hàng của: ${record.userName}`);
-    } catch (error) {
-      console.error(error);
-      message.error(`Hủy đơn hàng thất bại: Mã ${record.maDonHang}`);
-    }
-  };
-
-  const [searchText, setSearchText] = useState("");
-  const [searchedColumn, setSearchedColumn] = useState("");
-  const searchInput = useRef(null);
-
-  const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    confirm();
-    setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
-  };
-
-  const getColumnSearchProps = (dataIndex) => ({
-    filterDropdown: ({
-      setSelectedKeys,
-      selectedKeys,
-      confirm,
-      clearFilters,
-      close,
-    }) => (
-      <div
-        style={{
-          padding: 8,
-        }}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        <Input
-          ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) =>
-            setSelectedKeys(e.target.value ? [e.target.value] : [])
-          }
-          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
-          style={{
-            marginBottom: 8,
-            display: "block",
-          }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{
-              width: 90,
-            }}
-          >
-            Search
-          </Button>
-          <Button
-            onClick={() => {
-              clearFilters && clearFilters();
-              confirm();
-              setSearchText("");
-              setSearchedColumn(dataIndex);
-            }}
-            size="small"
-            style={{
-              width: 90,
-            }}
-          >
-            Reset
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              close();
-            }}
-          >
-            close
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered) => (
-      <SearchOutlined
-        style={{
-          color: filtered ? "#1677ff" : undefined,
-        }}
-      />
-    ),
-    onFilter: (value, record) =>
-      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
-      filterDropdownProps: {
-        onOpenChange: (visible) => {
-          if (visible) {
-            setTimeout(() => searchInput.current?.select(), 100);
-          }
-        }
-      },
-    render: (text) =>
-      searchedColumn === dataIndex ? (
-        <Highlighter
-          highlightStyle={{
-            backgroundColor: "#ffc069",
-            padding: 0,
-          }}
-          searchWords={[searchText]}
-          autoEscape
-          textToHighlight={text ? text.toString() : ""}
-        />
-      ) : (
-        text
-      ),
-  });
-
+  /* ================= TABLE ================= */
   const columns = [
     {
-      title: "Mã",
-      dataIndex: "maDonHang",
-      key: "ma",
+      title: "Mã đơn",
+      dataIndex: "_id",
       ellipsis: true,
-      sorter: (a, b) => a.maDonHang - b.maDonHang,
-      sortDirections: ["descend", "ascend"],
     },
     {
-      title: "Tên người dùng",
-      dataIndex: "userName",
-      key: "userName",
-      ellipsis: true,
-      ...getColumnSearchProps("userName"),
+      title: "Người mua",
+      render: (_, r) => r.userId?.userName || "—",
     },
     {
       title: "Ngày đặt",
-      dataIndex: "ngayDat",
-      key: "ngayDat",
-      sorter: (a, b) => a.ngayDat.localeCompare(b.ngayDat),
-      sortDirections: ["descend", "ascend"],
-      ...getColumnSearchProps("ngayDat"),
+      dataIndex: "createdAt",
+      render: formatDate,
     },
     {
-      title: "Hình thức thanh toán",
-      dataIndex: "paymentMethod",
-      key: "paymentMethod",
-      ellipsis: true,
-      sorter: (a, b) => a.paymentMethod.localeCompare(b.paymentMethod),
-      sortDirections: ["descend", "ascend"],
+      title: "Tổng tiền",
+      dataIndex: "total",
+      render: formatCurrency,
     },
     {
-      title: "Tình trạng thanh toán",
-      dataIndex: "paymentStatus",
-      key: "tinhTrang",
-      ellipsis: true,
-      sorter: (a, b) => a.paymentStatus.localeCompare(b.paymentStatus),
-      sortDirections: ["descend", "ascend"],
+      title: "Trạng thái",
+      dataIndex: "status",
+      render: (st) => (
+        <Tag color={ORDER_STATUS_COLOR[st]}>
+          {ORDER_STATUS_LABEL[st]}
+        </Tag>
+      ),
     },
-    {
-      title: "Trạng thái giao hàng",
-      dataIndex: "orderStatus",
-      key: "orderStatus",
-      ellipsis: true,
-      sorter: (a, b) => a.orderStatus.localeCompare(b.orderStatus),
-      sortDirections: ["descend", "ascend"],
-    },
-    {
-      title: "Hủy đơn",
-      key: "cancel",
-      align: "center",
-      render: (_, record) =>
-        record.orderStatus !== "Cancelled" &&
-        record.orderStatus !== "Delivered" ? (
-          <Button
-            danger
-            size="small"
-            icon={<DeleteFilled />}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCancelOrder(record);
-            }}
-          >
-            Hủy
-          </Button>
-        ) : (
-          <span style={{ color: "#999" }}>—</span>
-        ),
-    }
   ];
 
   return (
-    <div>
-      <Modal
-        title={false}
-        centered
-        open={modalChild !== null}
-        onCancel={() => setModalChild(null)}
-        maskClosable={false}
-        footer={null}
-        destroyOnHidden={true}
-        width="auto"
-      >
-        {modalChild}
-      </Modal>
+    <>
+      {/* ===== FILTER BAR ===== */}
+      <Space style={{ marginBottom: 16 }}>
+        <span>Lọc trạng thái:</span>
+        <Select
+          value={statusFilter}
+          onChange={setStatusFilter}
+          style={{ width: 220 }}
+        >
+          <Option value="ALL">Tất cả</Option>
+          {Object.keys(ORDER_STATUS_LABEL).map((key) => (
+            <Option key={key} value={key}>
+              {ORDER_STATUS_LABEL[key]}
+            </Option>
+          ))}
+        </Select>
+      </Space>
+
       <Table
-        onRow={(record) => ({
-          onClick: () => {
-            setModalChild(<OrderDetails order={record.order} handleRefresh={onRefresh} />);
-          },
-          onMouseEnter: (event) => {
-            event.currentTarget.style.cursor = "pointer";
-          },
-          onMouseLeave: (event) => {
-            event.currentTarget.style.cursor = "default";
-          },
-        })}
-        columns={columns}
         rowKey="_id"
         loading={loading}
-        dataSource={orders}
+        columns={columns}
+        dataSource={filteredOrders}
+        onRow={(record) => ({
+          onClick: () => openModal(record._id),
+          style: { cursor: "pointer" },
+        })}
       />
-    </div>
-  );
-};
 
-export default AdminOrder;
+      {/* ===== MODAL ===== */}
+      <Modal
+        open={openDetail}
+        onCancel={() => setOpenDetail(false)}
+        footer={null}
+        width="80vw"
+        destroyOnClose
+      >
+        {selectedOrderId && (
+          <AdminOrderDetail
+            orderId={selectedOrderId}
+            onUpdated={fetchOrders}
+          />
+        )}
+      </Modal>
+    </>
+  );
+}

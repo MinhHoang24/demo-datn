@@ -1,41 +1,30 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { publicRoutes } from './Routes/Routes';
-import { CartProvider } from './Contexts/CartContext';
-import { AuthProvider } from './Contexts/AuthContext';
-import "antd/dist/reset.css"; // "antd/dist/antd.css"
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { publicRoutes } from "./Routes/Routes";
+import { AuthProvider } from "./Contexts/AuthContext";
+import NotFound from "./Pages/NotFound/NotFound";
 
 function App() {
   return (
-    <>
-      <AuthProvider>
-        <CartProvider>
-          <BrowserRouter>
-            <Routes>
-              {publicRoutes.map((route, index) => {
-                const Page = route.component
-                const Layout = route.layout
-                let category = route.category
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {publicRoutes.map((group, idx) => {
+            const Layout = group.layout;
 
-                return (
-                  <Route key={index} path={route.path} element={
-                    <Layout>
-                      <Page category={category}></Page>
-                    </Layout>
-                  }>
-                    <Route path={route.childPath} element={
-                      <Layout>
-                        <Page category={category}></Page>
-                      </Layout>
-                    }> 
-                    </Route>
-                  </Route>
-                )
-              })}
-            </Routes>
-          </BrowserRouter>
-        </CartProvider>
-      </AuthProvider>
-    </>
+            return (
+              <Route key={idx} element={<Layout />}>
+                {group.routes.map((r, i) => (
+                  <Route key={i} path={r.path} element={r.element} />
+                ))}
+              </Route>
+            );
+          })}
+
+          {/* ✅ NOT FOUND – CHỈ 1 LẦN */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

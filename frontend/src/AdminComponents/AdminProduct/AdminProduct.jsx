@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Modal, Space, Table, message, Input } from "antd";
+import { Button, Modal, Space, Table, message, Input, Select } from "antd";
 import {
   PlusCircleFilled,
   DeleteFilled,
@@ -10,8 +10,12 @@ import Highlighter from 'react-highlight-words';
 import AddProduct from "./AddProduct";
 import ProductDetails from "./ProductDetails";
 import apiService from "../../Api/Api";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar } from '@fortawesome/free-solid-svg-icons';
 
 const AdminProduct = () => {
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const [nameSearch, setNameSearch] = useState("");
   const [refresh, setRefresh] = useState(false);
   const [products, setProducts] = useState([]);
   const [modalChild, setModalChild] = useState(null);
@@ -210,23 +214,26 @@ const AdminProduct = () => {
     },
     {
       title: "Số lượng",
-      dataIndex: "quantity",
       key: "quantity",
-      sorter: (a, b) => (a.quantity || 0) - (b.quantity || 0),
+      render: (_, record) => {
+        const totalQuantity = (record.variants || []).reduce(
+          (sum, v) => sum + (v.quantity || 0),
+          0
+        );
+        return totalQuantity;
+      },
+      sorter: (a, b) => {
+        const qa = (a.variants || []).reduce((s, v) => s + (v.quantity || 0), 0);
+        const qb = (b.variants || []).reduce((s, v) => s + (v.quantity || 0), 0);
+        return qa - qb;
+      },
       ellipsis: true,
-    },
-    {
-      title: "SALE",
-      dataIndex: "sale",
-      key: "sale",
-      render: (sale) =>
-        sale > 0 ? <span style={{ color: "red" }}>-{sale}%</span> : "-",
-      sorter: (a, b) => (a.sale || 0) - (b.sale || 0),
-      sortDirections: ["descend", "ascend"],
     },
     {
       title: "Đánh giá",
       dataIndex: "rating",
+      render: (star) =>
+        <span>{star} <FontAwesomeIcon icon={faStar} color={"gold"} /></span>,
       key: "rating",
       sorter: (a, b) => a.rating - b.rating,
       sortDirections: ['descend', 'ascend'],
@@ -251,6 +258,24 @@ const AdminProduct = () => {
       ),
     },
   ];
+
+  const categories = React.useMemo(() => {
+    const set = new Set(products.map(p => p.category));
+    return ["ALL", ...Array.from(set)];
+  }, [products]);
+
+  const filteredProducts = React.useMemo(() => {
+    return products.filter(p => {
+      const matchCategory =
+        selectedCategory === "ALL" || p.category === selectedCategory;
+
+      const matchName =
+        p.name.toLowerCase().includes(nameSearch.toLowerCase());
+
+      return matchCategory && matchName;
+    });
+  }, [products, selectedCategory, nameSearch]);
+
   return (
     <div>
       <Space
@@ -262,6 +287,26 @@ const AdminProduct = () => {
           <PlusCircleFilled />
           Thêm sản phẩm
         </Button>
+        <Select
+          style={{ width: 180 }}
+          listHeight={400}
+          value={selectedCategory}
+          onChange={setSelectedCategory}
+        >
+          {categories.map(c => (
+            <Select.Option key={c} value={c}>
+              {c === "ALL" ? "Tất cả" : c}
+            </Select.Option>
+          ))}
+        </Select>
+        <Input
+          allowClear
+          placeholder="Tìm theo tên sản phẩm"
+          prefix={<SearchOutlined />}
+          style={{ width: 360 }}
+          value={nameSearch}
+          onChange={(e) => setNameSearch(e.target.value)}
+        />
       </Space>
 
       <Modal
@@ -291,7 +336,7 @@ const AdminProduct = () => {
           };
         }}
         columns={columns}
-        dataSource={products}
+        dataSource={filteredProducts}
         rowKey="_id"
         loading={loading}
         pagination={{

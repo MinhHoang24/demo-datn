@@ -32,10 +32,10 @@ export default function LoginPage() {
     const handleResendVerify = async () => {
         try {
             setIsResending(true);
-            await apiService.resendVerifyEmail({ email: identifier });
-            setResendMessage("Đã gửi lại email xác nhận. Vui lòng kiểm tra email.");
-        } catch (err) {
-            setResendMessage("Không thể gửi lại email. Vui lòng thử lại.");
+            await apiService.resendOtp({ email: identifier });
+            setResendMessage("Đã gửi lại mã OTP. Vui lòng kiểm tra email.");
+        } catch {
+            setResendMessage("Không thể gửi lại OTP. Vui lòng thử lại.");
         } finally {
             setIsResending(false);
         }
@@ -104,13 +104,12 @@ export default function LoginPage() {
                 setErrors(newErrors);
             }
         } catch (error) {
-            console.error("Error during login:", error);
-            if (error.response?.status === 403) {
-                setNeedVerify(true);
-                setResendMessage("");
-            } else {
-                setErrors({ apiError: "Đã có lỗi xảy ra. Vui lòng thử lại sau." });
-            }
+        if (error.response?.status === 403) {
+            setNeedVerify(true);
+            navigate(`/verify-otp?email=${identifier}`);
+        } else {
+            setErrors({ apiError: "Đã có lỗi xảy ra. Vui lòng thử lại sau." });
+        }
         } finally {
             setIsLoggingIn(false);
         }
@@ -154,7 +153,7 @@ export default function LoginPage() {
                     {needVerify && (
                         <div className="verify-warning flex flex-col items-center">
                             <div className="flex gap-1 pt-10 justify-center items-center">
-                                <p>Email của bạn chưa được xác nhận.</p>
+                                <p>Tài khoản chưa được xác thực.</p>
                                 <p
                                     className={`underline cursor-pointer ${
                                         isResending
@@ -163,7 +162,7 @@ export default function LoginPage() {
                                     }`}
                                     onClick={!isResending ? handleResendVerify : undefined}
                                 >
-                                    {isResending ? "Đang gửi..." : "Gửi lại email xác nhận?"}
+                                    {isResending ? "Đang gửi..." : "Gửi lại mã OTP?"}
                                 </p>
                             </div>
                             {resendMessage && <p>{resendMessage}</p>}

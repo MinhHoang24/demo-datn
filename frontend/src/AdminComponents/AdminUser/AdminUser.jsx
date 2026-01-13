@@ -56,7 +56,7 @@ const AdminUser = () => {
     setSearchedColumn(dataIndex);
   };
 
-  const getColumnSearchProps = (dataIndex) => ({
+  const getColumnSearchProps = (dataIndex, title) => ({
     filterDropdown: ({
       setSelectedKeys,
       selectedKeys,
@@ -67,7 +67,7 @@ const AdminUser = () => {
       <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
         <Input
           ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
+          placeholder={`Search by ${title}`}
           value={selectedKeys[0]}
           onChange={(e) =>
             setSelectedKeys(e.target.value ? [e.target.value] : [])
@@ -174,7 +174,6 @@ const AdminUser = () => {
       sorter: (a, b) => a._id.localeCompare(b._id),
       sortDirections: ["descend", "ascend"],
       width: "15%",
-      ...getColumnSearchProps("_id"),
     },
     {
       title: "User name",
@@ -182,7 +181,7 @@ const AdminUser = () => {
       key: "userName",
       ellipsis: true,
       width: "20%",
-      ...getColumnSearchProps("userName"),
+      ...getColumnSearchProps("userName", "User name"),
     },
     {
       title: "Phone number",
@@ -190,7 +189,7 @@ const AdminUser = () => {
       key: "phoneNumber",
       ellipsis: true,
       width: "15%",
-      ...getColumnSearchProps("phoneNumber"),
+      ...getColumnSearchProps("phoneNumber" , "Phone number"),
     },
     {
       title: "Email",
@@ -198,7 +197,7 @@ const AdminUser = () => {
       key: "email",
       ellipsis: true,
       width: "20%",
-      ...getColumnSearchProps("email"),
+      ...getColumnSearchProps("email", "Email"),
     },
     {
       title: "Địa chỉ",
@@ -206,7 +205,7 @@ const AdminUser = () => {
       key: "diaChi",
       ellipsis: true,
       width: "30%",
-      ...getColumnSearchProps("diaChi"),
+      ...getColumnSearchProps("diaChi", "Địa chỉ"),
     },
     {
       title: "Actions",

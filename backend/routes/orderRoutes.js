@@ -1,21 +1,35 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const OrderController = require('../controllers/orderController');
-const authMiddleware = require('../middlewares/userMiddleware');
+const { protect } = require("../middlewares/authMiddleware");
 
-// Route tạo đơn hàng mới
-router.post('/', OrderController.createOrder);
+const {
+  getMyOrders,
+  getMyOrderById,
+  cancelOrderByUser,
+  checkoutSelectedCODFromCart,
+  checkoutBuyNowCOD
+} = require("../controllers/orderController");
 
-// Route lấy tất cả đơn hàng của người dùng
-router.get('/:userId', OrderController.getOrders);
+// ✅ Checkout COD từ cart selected
+// POST /orders/checkout/cod
+router.post("/checkout/cod", protect, checkoutSelectedCODFromCart);
 
-// Route cập nhật trạng thái đơn hàng
-router.put('/:orderId/status', OrderController.updateOrderStatus);
+router.post(
+  "/checkout/buy-now/cod",
+  protect,
+  checkoutBuyNowCOD
+);
 
-// Route xóa đơn hàng
-router.delete('/:orderId', OrderController.deleteOrder);
+// Danh sách đơn của tôi
+// GET /orders/my
+router.get("/my", protect, getMyOrders);
 
-// Hủy đơn hàng
-router.patch('/:orderId', authMiddleware, OrderController.cancelOrder);
+// Hủy đơn (chỉ PENDING + COD)
+// PATCH /orders/:orderId/cancel
+router.patch("/:orderId/cancel", protect, cancelOrderByUser);
+
+// Chi tiết đơn của tôi (để sau cùng)
+// GET /orders/:orderId
+router.get("/:orderId", protect, getMyOrderById);
 
 module.exports = router;

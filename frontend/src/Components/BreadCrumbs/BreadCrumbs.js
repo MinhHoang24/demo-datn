@@ -3,9 +3,12 @@ import { Link } from 'react-router-dom';
 import './BreadCrumbs.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faHouse } from '@fortawesome/free-solid-svg-icons';
+import { CATEGORY_TITLES } from "../../Constants/Category.ts";
 
 function Breadcrumbs({ product, category, brand }) {
   const lowercaseCategory = category.toLowerCase();
+  const categoryTitle =
+    CATEGORY_TITLES[category] || category;
 
   return (
     <div className='breadcrumbs'>
@@ -17,16 +20,8 @@ function Breadcrumbs({ product, category, brand }) {
           </div>
           <div className="breadcrumbs-block">
             <FontAwesomeIcon icon={faChevronRight} />
-            <Link to={`/${lowercaseCategory}`}>{category}</Link>
+            <Link to={`/${lowercaseCategory}`}>{categoryTitle}</Link>
           </div>
-          {brand && (
-            <div className="breadcrumbs-block">
-              <FontAwesomeIcon icon={faChevronRight} />
-              <Link to={`/${lowercaseCategory}/${brand.toLowerCase()}`}>
-                {brand}
-              </Link>
-            </div>
-          )}
           {product && (
             <div className="breadcrumbs-block">
               <FontAwesomeIcon icon={faChevronRight} />

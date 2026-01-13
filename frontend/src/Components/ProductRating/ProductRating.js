@@ -1,27 +1,50 @@
-import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar, faStarHalfAlt } from '@fortawesome/free-solid-svg-icons';
-import './ProductRating.css'
+import React, { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar, faStarHalfAlt } from "@fortawesome/free-solid-svg-icons";
+import "./ProductRating.css";
 
-const ProductRating = ({ rating }) => {
+const ProductRating = ({
+  rating = 0,
+  onChange,          // 👉 nếu có thì cho click
+  size = 18,
+}) => {
+  const [hover, setHover] = useState(0);
+  const isInteractive = typeof onChange === "function";
+
+  const displayRating = hover || rating;
+  const fullStars = Math.floor(displayRating);
+  const halfStar = displayRating - fullStars >= 0.5;
+
   const stars = [];
-  const fullStars = Math.floor(rating); 
-  const halfStar = rating - fullStars >= 0.5; 
-  for (let i = 0; i < fullStars; i++) {
-    stars.push(<FontAwesomeIcon icon={faStar} key={i} style={{ color: 'gold' }} />);
+
+  for (let i = 1; i <= 5; i++) {
+    let icon = faStar;
+    let color = "gray";
+
+    if (i <= fullStars) {
+      color = "gold";
+    } else if (i === fullStars + 1 && halfStar) {
+      icon = faStarHalfAlt;
+      color = "gold";
+    }
+
+    stars.push(
+      <span
+        key={i}
+        onClick={() => isInteractive && onChange(i)}
+        onMouseEnter={() => isInteractive && setHover(i)}
+        onMouseLeave={() => isInteractive && setHover(0)}
+        style={{
+          cursor: isInteractive ? "pointer" : "default",
+          fontSize: size,
+        }}
+      >
+        <FontAwesomeIcon icon={icon} color={color} />
+      </span>
+    );
   }
 
-
-  if (halfStar) {
-    stars.push(<FontAwesomeIcon icon={faStarHalfAlt} key={fullStars} style={{ color: 'gold' }} />);
-  }
-
-  let  remainingStars = 5 - stars.length;
-  for (let i = 0; i < remainingStars; i++) {
-    stars.push(<FontAwesomeIcon icon={faStar} key={fullStars + i + 1} style={{ color: 'gray' }} />);
-  }
-
-  return <div className="box-rating">{stars.map((star, index) => <div className="star-icon" key={index}>{star}</div>)}</div>;
+  return <div className="flex gap-1">{stars}</div>;
 };
 
 export default ProductRating;

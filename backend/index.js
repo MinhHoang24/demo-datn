@@ -1,53 +1,62 @@
-const express = require('express');
-const connectDB = require('./config/db');
-const userRoutes = require('./routes/userRoutes');
-const adminRoutes = require('./routes/adminRoutes');
-const productRoutes = require('./routes/productRoutes');
-const orderRoutes = require('./routes/orderRoutes'); 
-const cartRoutes = require('./routes/cartRoutes'); 
-const commentRoutes = require('./routes/commentRoutes')
-const cors = require('cors');
+const express = require("express");
+const connectDB = require("./config/db");
+const userRoutes = require("./routes/userRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const productRoutes = require("./routes/productRoutes");
+const commentRoutes = require("./routes/commentRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const cartRoutes = require("./routes/cartRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+
+const cors = require("cors");
+const path = require("path");
+require("dotenv").config();
+
+const http = require("http");
+const { Server } = require("socket.io");
+const { initSocket } = require("./socket/socketServer");
+const { registerSocketHandlers } = require("./socket/socketAuth");
+
 const app = express();
-const path = require('path');
-const cloudinary = require('./config/cloudinaryConfig');
-require('dotenv').config();
 
 const corsOptions = {
-    origin: ['https://minh-hoang.web.app', 'http://localhost:3000'],  
-    methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+  origin: ["https://minh-hoang.web.app", "http://localhost:3000"],
+  methods: ["GET", "POST", "DELETE", "PATCH", "PUT"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
-
-
 app.use(express.json());
 
-// Kết nối đến MongoDB Atlas
 connectDB();
 
-// Sử dụng routes người dùng
-app.use('/', userRoutes);
+app.use("/", userRoutes);
+app.use("/admin", adminRoutes);
+app.use("/product", productRoutes);
+app.use("/comments", commentRoutes);
 
-// Sử dụng rotes admin
-app.use('/admin', adminRoutes);
+app.use("/cart", cartRoutes);
+app.use("/orders", orderRoutes);
+app.use("/notifications", notificationRoutes);
 
-// Sử dụng routes product
-app.use('/product', productRoutes);
-
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Sử dụng routes order
-app.use('/orders', orderRoutes); 
-
-// Sử dụng routes cart
-app.use('/cart', cartRoutes); 
-
-// Sử dụng routes comments
-app.use('/comments', commentRoutes); 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server đang chạy trên cổng ${PORT}`);
+
+// ✅ Socket.IO setup
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: corsOptions.origin,
+    methods: corsOptions.methods,
+    credentials: true,
+  },
+});
+
+initSocket(io);
+registerSocketHandlers(io);
+
+server.listen(PORT, () => {
+  console.log(`Server đang chạy trên cổng ${PORT}`);
 });

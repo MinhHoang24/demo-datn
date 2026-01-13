@@ -72,23 +72,23 @@ const UserProfile = () => {
     };
 
     const handleChangePassword = async () => {
-        if (!newPassword) {
-            Noti.error('Vui lòng nhập mật khẩu mới!');
-            return;
-        }
-        try {
-            await apiService.changePassword(currentPassword, newPassword);
-            Noti.success('Đổi mật khẩu thành công!');
-            setShowChangePassword(false);
-            setIsCurrentPasswordConfirmed(false);
-            setCurrentPassword('');
-            setNewPassword('');
-            setError('');
-        } catch (error) {
-            console.error('Error changing password:', error.response ? error.response.data.message : error.message);
-            Noti.error('Đổi mật khẩu thất bại!');
-            setError('Đổi mật khẩu thất bại');
-        }
+    if (!currentPassword || !newPassword) {
+        Noti.error("Vui lòng nhập đầy đủ mật khẩu");
+        return;
+    }
+
+    try {
+        await apiService.changePassword(currentPassword, newPassword);
+        Noti.success("Đổi mật khẩu thành công!");
+
+        setShowChangePassword(false);
+        setCurrentPassword("");
+        setNewPassword("");
+    } catch (error) {
+        Noti.error(
+        error?.response?.data?.message || "Đổi mật khẩu thất bại"
+        );
+    }
     };
 
     const handleUpdateProfile = async () => {
@@ -124,7 +124,7 @@ const UserProfile = () => {
                 <p><strong>Email: </strong>{user.email || 'Chưa cập nhật'}</p>
                 <div className="user-profile-buttons">
                     <Button type="primary" onClick={() => setShowEditProfile(true)}>Chỉnh sửa thông tin</Button>
-                    <Button type="default" onClick={() => setShowChangePassword(true)}>Đổi mật khẩu</Button>
+                    <Button type="primary" onClick={() => setShowChangePassword(true)}>Đổi mật khẩu</Button>
                 </div>
             </div>
 
@@ -166,34 +166,28 @@ const UserProfile = () => {
 
             {/* Change Password Modal */}
             <Modal
-                title="Đổi mật khẩu"
-                open={showChangePassword}
-                onCancel={() => setShowChangePassword(false)}
-                footer={null}
+            title="Đổi mật khẩu"
+            open={showChangePassword}
+            onCancel={() => setShowChangePassword(false)}
+            footer={null}
             >
-                {!isCurrentPasswordConfirmed ? (
-                    <>
-                        <Input.Password
-                            placeholder="Xác nhận mật khẩu cũ"
-                            value={currentPassword}
-                            onChange={(e) => setCurrentPassword(e.target.value)}
-                            style={{ marginBottom: '10px' }}
-                        />
-                        <Button type="primary" onClick={handleConfirmCurrentPassword} style={{ marginRight: '10px' }}>Xác nhận</Button>
-                        {error && <p className="error" style={{ color: 'red' }}>{error}</p>}
-                    </>
-                ) : (
-                    <>
-                        <Input.Password
-                            placeholder="Nhập mật khẩu mới"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            style={{ marginBottom: '10px' }}
-                        />
-                        <Button type="primary" onClick={handleChangePassword} style={{ marginRight: '10px' }}>Xác nhận</Button>
-                        {error && <p className="error" style={{ color: 'red' }}>{error}</p>}
-                    </>
-                )}
+            <Input.Password
+                placeholder="Mật khẩu hiện tại"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                style={{ marginBottom: 10 }}
+            />
+
+            <Input.Password
+                placeholder="Mật khẩu mới"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                style={{ marginBottom: 10 }}
+            />
+
+            <Button type="primary" onClick={handleChangePassword}>
+                Đổi mật khẩu
+            </Button>
             </Modal>
         </div>
     );

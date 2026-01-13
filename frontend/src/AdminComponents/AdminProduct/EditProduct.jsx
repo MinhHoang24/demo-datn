@@ -8,300 +8,301 @@ import {
   Row,
   Col,
   Divider,
-  message,
+  Upload,
   Image,
+  message,
 } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import apiService from "../../Api/Api";
 import ProductDetails from "./ProductDetails";
 
 const EditProduct = ({ product, setModalChild, handleRefresh }) => {
-  const initialVariants = (product.variants || []).map((variant) => ({
-    ...variant,
-    key: Date.now() + Math.random(), // tạo khóa key duy nhất
+  /* ================= VARIANTS STATE ================= */
+  const initialVariants = (product.variants || []).map((v) => ({
+    ...v,
+    key: Date.now() + Math.random(),
   }));
-  const [variants, setVariants] = useState(initialVariants);
 
-  const onFinishFailed = (errorInfo) => {
-    console.log("Failed:", errorInfo);
+  const [variants, setVariants] = useState(initialVariants);
+  const [variantFiles, setVariantFiles] = useState({});
+  const [uploading, setUploading] = useState(false);
+
+  /* ================= HELPERS ================= */
+  const uploadImageToServer = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await apiService.uploadImage(formData);
+    return res.data.url;
   };
 
   const addVariant = () => {
     setVariants([
       ...variants,
-      { key: Date.now(), color: "", quantity: "", sale: "", image: "" },
+      { key: Date.now(), color: "", quantity: 0, sale: 0, image: "" },
     ]);
   };
 
   const removeVariant = (key) => {
-    setVariants(variants.filter((variant) => variant.key !== key));
+    setVariants(variants.filter((v) => v.key !== key));
+    setVariantFiles((prev) => {
+      const copy = { ...prev };
+      delete copy[key];
+      return copy;
+    });
   };
 
-  const handleVariantChange = (key, field, value) => {
+  const updateVariant = (key, field, value) => {
     setVariants(
-      variants.map((variant) =>
-        variant.key === key ? { ...variant, [field]: value } : variant
+      variants.map((v) =>
+        v.key === key ? { ...v, [field]: value } : v
       )
     );
   };
 
+  /* ================= SUBMIT ================= */
   const onFinish = async (values) => {
     try {
-      console.log("Form Values:", values);
-      console.log("Variants:", variants);
+      if (!product?._id) throw new Error("Không tìm thấy ID sản phẩm");
 
-      if (!product._id) {
-        throw new Error("ID sản phẩm không tồn tại");
-      }
+      setUploading(true);
 
       const data = {
-        name: values.name || "", 
-        category: values.category || "",
-        brand: {
-          name: values.brand?.name || "", 
-        },
-        description: typeof values.description === 'string' ? values.description.split("\n") : [], // Kiểm tra kiểu dữ liệu trước khi split
-        specifications: typeof values.specifications === 'string' ? values.specifications.split("\n") : [],
-        price: values.price || 0, 
-        variants: []
+        name: values.name,
+        category: values.category,
+        brand: { name: values.brand?.name || "" },
+        price: values.price || 0,
+        description:
+          typeof values.description === "string"
+            ? values.description.split("\n").map((l) => l.trim()).filter(Boolean)
+            : [],
+        specifications:
+          typeof values.specifications === "string"
+            ? values.specifications.split("\n").map((l) => l.trim()).filter(Boolean)
+            : [],
+        variants: [],
       };
 
-      console.log("Description:", data.variants);
+      /* ===== Upload & xử lý biến thể ===== */
+      for (const variant of variants) {
+        let imageUrl = variant.image;
 
-      variants.forEach((variant) => {
+        if (variantFiles[variant.key]) {
+          imageUrl = await uploadImageToServer(variantFiles[variant.key]);
+        }
+
         data.variants.push({
           color: variant.color || "default",
           quantity: variant.quantity || 0,
           sale: variant.sale || 0,
-          image: variant.image || "",
+          image: imageUrl || "",
         });
-      });
-      console.log(product)
-      // Kiểm tra xem có sự thay đổi nào không
-      const isProductChanged = JSON.stringify(data) !== JSON.stringify(product);
-      const areVariantsChanged = JSON.stringify(data.variants) !== JSON.stringify(product.variants);
-
-      if (!isProductChanged && !areVariantsChanged) {
-        console.log("not thing to change")
-        message.info("Không có thay đổi nào để cập nhật.");
-        return; // Không gửi đi nếu không có thay đổi
       }
 
       await apiService.updateProduct(product._id, data);
-      message.success("Sản phẩm được cập nhật thành công!");
-      handleRefresh();      
+      message.success("Cập nhật sản phẩm thành công!");
+
+      handleRefresh();
       setModalChild(null);
-    } catch (e) {
-      message.error(e.message);
+    } catch (err) {
+      console.error(err);
+      message.error(err.message || "Lỗi khi cập nhật sản phẩm");
+    } finally {
+      setUploading(false);
     }
   };
 
+  /* ================= RENDER ================= */
   return (
     <div style={{ width: 1200 }}>
-      <h2 style={{ marginTop: 0, marginBottom: 10, textAlign: "center", fontSize: "24px" }}>Chỉnh sửa Sản Phẩm</h2>
-      
+      <h2 style={{ textAlign: "center", marginBottom: 10 }}>
+        Chỉnh sửa sản phẩm
+      </h2>
+
       <Form
-        name="chinhSuaSanPham"
         labelCol={{ span: 4 }}
         wrapperCol={{ span: 20 }}
-        initialValues={{ ...product, description: product.description.join('\n'), specifications: product.specifications.join('\n') }}
+        initialValues={{
+          ...product,
+          description: product.description?.join("\n"),
+          specifications: product.specifications?.join("\n"),
+        }}
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         autoComplete="off"
       >
         <Row gutter={16}>
+          {/* ================= LEFT ================= */}
           <Col span={12}>
             <Form.Item
               label="Tên"
               name="name"
-              rules={[{ required: true, message: "Hãy nhập tên sản phẩm!" }]}
+              rules={[{ required: true, message: "Nhập tên sản phẩm" }]}
             >
               <Input />
             </Form.Item>
+
             <Form.Item
               label="Loại"
               name="category"
-              rules={[{ required: true, message: "Hãy nhập loại hàng hóa!" }]}
+              rules={[{ required: true, message: "Nhập loại hàng hóa" }]}
             >
               <Input />
             </Form.Item>
-            <Form.Item label="Nhà sản xuất">
-              <Row justify="center">
-                <Col span={16}>
-                  <Form.Item
-                    label="Tên"
-                    name={["brand", "name"]}
-                    required
-                    rules={[
-                      {
-                        required: true,
-                        message: "Hãy nhập tên hãng sản xuất!",
-                      },
-                    ]}
-                    labelCol={{ span: 5 }}
-                    wrapperCol={{ span: 19 }}
-                  >
-                    <Input />
-                  </Form.Item>
-                </Col>
-              </Row>
+
+            <Form.Item label="Hãng">
+              <Form.Item
+                name={["brand", "name"]}
+                rules={[{ required: true, message: "Nhập tên hãng" }]}
+                noStyle
+              >
+                <Input />
+              </Form.Item>
             </Form.Item>
+
             <Form.Item
               label="Thông tin"
               name="description"
-              rules={[
-                { required: true, message: "Hãy nhập thông tin sản phẩm!" },
-              ]}
+              rules={[{ required: true }]}
             >
               <Input.TextArea rows={4} />
             </Form.Item>
+
             <Form.Item
               label="Thông số"
               name="specifications"
-              rules={[
-                { required: true, message: "Hãy nhập thông số sản phẩm!" },
-              ]}
+              rules={[{ required: true }]}
             >
               <Input.TextArea rows={4} />
             </Form.Item>
+
             <Form.Item
               label="Giá"
               name="price"
-              wrapperCol={{ span: 12 }}
-              rules={[{ required: true, message: "Hãy nhập giá sản phẩm!" }]}
+              rules={[{ required: true }]}
             >
               <InputNumber
                 min={0}
-                addonAfter="₫"
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                style={{ width: "100%" }}
+                formatter={(v) =>
+                  `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
               />
             </Form.Item>
           </Col>
-          <Col span={12} style={{ paddingLeft: 10 }}>
-            <h3 style={{ margin: 0 }}>Biến thể</h3>
-            {variants.map((variant) => (
-              <div key={variant.key} style={{ marginBottom: 8 }}>
-                <Divider style={{ margin: 10, borderTopColor: '#b0d169' }} dashed/>
-                <Row>
-                  <Col span={17}>
-                    <Form.Item
-                      label="Màu sắc"
-                      required
-                      labelCol={{ span: 6 }}
-                      wrapperCol={{ span: 17 }}
-                    >
-                      <Input
-                        placeholder="Màu sắc"
-                        value={variant.color}
-                        onChange={(e) =>
-                          handleVariantChange(
-                            variant.key,
-                            "color",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      label="Url ảnh"
-                      labelCol={{ span: 6 }}
-                      wrapperCol={{ span: 17 }}
-                    >
-                      <Input
-                        value={variant.image}
-                        onChange={(e) => {
-                          handleVariantChange(
-                            variant.key,
-                            "image",
-                            e.target.value
-                          );
-                        }}
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      label="Số lượng"
-                      labelCol={{ span: 6 }}
-                      rules={[
-                        { required: true, message: "Hãy nhập số lượng!" },
-                      ]}
-                    >
-                      <InputNumber
-                        min={0}
-                        value={variant.quantity}
-                        onChange={(value) =>
-                          handleVariantChange(variant.key, "quantity", value)
-                        }
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      label="Giảm giá"
-                      labelCol={{ span: 6 }}
-                      style={{ marginBottom: 0 }}
-                    >
-                      <InputNumber
-                        min={0}
-                        addonAfter="%"
-                        value={variant.sale}
-                        onChange={(value) =>
-                          handleVariantChange(variant.key, "sale", value)
-                        }
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={5}>
-                    {variant.image && (
-                      <Image
-                        height={100}
-                        width={100}
-                        style={{
-                          objectFit: "contain",
-                          borderRadius: "10px",
-                          border: "1px solid #ccc",
-                        }}
-                        src={variant.image}
-                        fallback="data:image/png;base64,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"
-                      />
-                    )}
-                  </Col>
-                  <Col
-                    span={2}
-                    style={{ display: "flex", alignItems: "center" }}
+
+          {/* ================= RIGHT – VARIANTS ================= */}
+          <Col span={12}>
+            <h3>Biến thể</h3>
+
+            {variants.map((v) => (
+              <div key={v.key}>
+                <Divider dashed />
+
+                <Form.Item label="Màu sắc">
+                  <Input
+                    value={v.color}
+                    onChange={(e) =>
+                      updateVariant(v.key, "color", e.target.value)
+                    }
+                  />
+                </Form.Item>
+
+                <Form.Item label="Ảnh">
+                  <Upload
+                    showUploadList={false}
+                    beforeUpload={(file) => {
+                      setVariantFiles((p) => ({ ...p, [v.key]: file }));
+                      return false;
+                    }}
                   >
-                    <Button
-                      type="dashed"
-                      onClick={() => removeVariant(variant.key)}
-                      icon={<MinusCircleOutlined />}
+                    <Button icon={<PlusOutlined />}>Chọn ảnh mới</Button>
+                  </Upload>
+
+                  {v.image && (
+                    <Image
+                      src={v.image}
+                      width={100}
+                      height={100}
+                      style={{
+                        marginTop: 8,
+                        objectFit: "contain",
+                        border: "1px solid #ddd",
+                        borderRadius: 8,
+                      }}
                     />
-                  </Col>
-                </Row>
+                  )}
+
+                  {variantFiles[v.key] && (
+                    <div style={{ fontSize: 12 }}>
+                      📄 {variantFiles[v.key].name}
+                    </div>
+                  )}
+                </Form.Item>
+
+                <Form.Item label="Số lượng">
+                  <InputNumber
+                    min={0}
+                    value={v.quantity}
+                    onChange={(val) =>
+                      updateVariant(v.key, "quantity", val)
+                    }
+                  />
+                </Form.Item>
+
+                <Form.Item label="Giảm giá (%)">
+                  <InputNumber
+                    min={0}
+                    value={v.sale}
+                    onChange={(val) => updateVariant(v.key, "sale", val)}
+                  />
+                </Form.Item>
+
+                <Button
+                  danger
+                  type="dashed"
+                  icon={<MinusCircleOutlined />}
+                  onClick={() => removeVariant(v.key)}
+                >
+                  Xóa biến thể
+                </Button>
               </div>
             ))}
 
             <Button
               type="dashed"
-              onClick={addVariant}
               icon={<PlusOutlined />}
-              style={{ width: "100%", marginBottom: 20 }}
+              style={{ width: "100%", marginTop: 10 }}
+              onClick={addVariant}
             >
               Thêm biến thể
             </Button>
           </Col>
         </Row>
+
+        {/* ================= ACTIONS ================= */}
         <Form.Item
-          wrapperCol={{
-            offset: 21,
-            span: 3,
-          }}
-          style={{ marginBottom: 0 }}
+          wrapperCol={{ offset: 21, span: 3 }}
+          style={{ marginTop: 20 }}
         >
           <Space>
-            <Button type="primary" htmlType="submit">
-              OK
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={uploading}
+            >
+              Lưu
             </Button>
-            <Button type="default" onClick={() => setModalChild(<ProductDetails product={product} setModalChild={setModalChild} />)}>
-              Cancel
+            <Button
+              onClick={() =>
+                setModalChild(
+                  <ProductDetails
+                    products={product}
+                    setModalChild={setModalChild}
+                    handleRefresh={handleRefresh}
+                  />
+                )
+              }
+            >
+              Hủy
             </Button>
           </Space>
         </Form.Item>

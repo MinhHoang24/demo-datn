@@ -5,8 +5,8 @@ const {
     getProfile, 
     updateProfile, 
     changePassword,
-    verifyEmail,
-    resendVerifyEmail
+    verifyOtp,
+    resendOtp,
 } = require('../controllers/userController');
 const authMiddleware = require('../middlewares/userMiddleware');
 
@@ -27,8 +27,7 @@ router.put('/profile', authMiddleware, updateProfile);
 // Đổi mật khẩu
 router.put('/change-password', authMiddleware, changePassword);
 
-router.get('/verify-email', verifyEmail);
-
-router.post('/resend-verify-email', resendVerifyEmail);
+router.post('/verify-otp', verifyOtp);
+router.post('/resend-otp', resendOtp);
 
 module.exports = router;

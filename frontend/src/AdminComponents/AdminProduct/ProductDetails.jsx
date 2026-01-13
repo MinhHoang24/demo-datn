@@ -118,13 +118,9 @@ const ProductDetails = ({ products, setModalChild, handleRefresh }) => {
                   marginRight: 5,
                 }}
               >
-                {products.star1 +
-                  products.star2 +
-                  products.star3 +
-                  products.star4 +
-                  products.star5}
+                {products.totalRatings}
               </span>
-              <span>Đánh giá {products.star1}</span>
+              <span>Đánh giá</span>
               
             </Col>
           </Row>

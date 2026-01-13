@@ -1,0 +1,20 @@
+const ORDER_STATUS = {
+  PENDING_CONFIRM: "PENDING_CONFIRM",
+  CONFIRMED: "CONFIRMED",
+  SHIPPING: "SHIPPING",
+  DELIVERED: "DELIVERED",
+  CANCELLED: "CANCELLED",
+};
+
+const ORDER_STATUS_LABEL = {
+  PENDING_CONFIRM: "Chờ xác nhận",
+  CONFIRMED: "Đã xác nhận",
+  SHIPPING: "Đang giao hàng",
+  DELIVERED: "Đã giao",
+  CANCELLED: "Đã huỷ",
+};
+
+module.exports = {
+  ORDER_STATUS,
+  ORDER_STATUS_LABEL,
+};
