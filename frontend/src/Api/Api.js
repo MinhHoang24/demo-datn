@@ -1,6 +1,7 @@
 import axios from "axios";
 
-export const base_url = "http://localhost:5000";
+// export const base_url = "http://localhost:5000";
+export const base_url = "https://demo-datn.onrender.com";
 axios.defaults.withCredentials = true;
 
 const apiInstance = axios.create({
