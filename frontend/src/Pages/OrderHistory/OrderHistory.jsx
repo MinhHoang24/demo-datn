@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import apiService from "../../Api/Api";
 import Toast from "../../Components/Toast/Toast";
@@ -42,6 +42,7 @@ export default function OrderHistory() {
   const [page, setPage] = useState(1);
   const [limit] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   /* ================= UI STATE ================= */
   const [openDetail, setOpenDetail] = useState(false);
@@ -57,6 +58,11 @@ export default function OrderHistory() {
     message: "",
     type: "success",
   });
+
+  const filteredOrders = useMemo(() => {
+    if (statusFilter === "ALL") return orders;
+    return orders.filter((o) => o.status === statusFilter);
+  }, [orders, statusFilter]);
 
   /* ================= FETCH ORDERS (BE PAGINATION) ================= */
   const fetchOrders = useCallback(async () => {
@@ -161,9 +167,29 @@ export default function OrderHistory() {
       )}
 
       <div className="max-w-5xl mx-auto p-6 space-y-6">
-        <h1 className="text-2xl font-bold">Đơn hàng của tôi</h1>
+        {/* ===== TITLE + FILTER ===== */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="text-2xl font-bold">Đơn hàng của tôi</h1>
 
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1); // reset page khi đổi filter
+            }}
+            className="w-full sm:w-56 px-4 py-2 border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="ALL">All</option>
+            <option value="PENDING">Chờ xác nhận</option>
+            <option value="CONFIRMED">Đang giao</option>
+            <option value="DELIVERED">Đã giao</option>
+            <option value="CANCELLED">Đã hủy</option>
+          </select>
+        </div>
+
+        {/* ===== CONTENT ===== */}
         {orders.length === 0 ? (
+          /* 👉 CHƯA CÓ ĐƠN HÀNG NÀO */
           <div className="bg-white border rounded-xl p-8 text-center">
             <p className="text-gray-500">Bạn chưa có đơn hàng nào</p>
             <button
@@ -173,13 +199,20 @@ export default function OrderHistory() {
               Tiếp tục mua sắm
             </button>
           </div>
+        ) : filteredOrders.length === 0 ? (
+          /* 👉 CÓ ĐƠN HÀNG NHƯNG KHÔNG KHỚP FILTER */
+          <div className="bg-white border rounded-xl p-8 text-center">
+            <p className="text-gray-500">
+              Không có đơn hàng nào với trạng thái đã chọn
+            </p>
+          </div>
         ) : (
           <>
+            {/* ===== ORDER LIST ===== */}
             <div className="space-y-4">
-              {orders.map((order) => {
+              {filteredOrders.map((order) => {
                 const statusUI =
-                  ORDER_STATUS_UI[order.status] ||
-                  ORDER_STATUS_UI.PENDING;
+                  ORDER_STATUS_UI[order.status] || ORDER_STATUS_UI.PENDING;
 
                 const canCancel =
                   order.status === "PENDING" &&
@@ -196,15 +229,25 @@ export default function OrderHistory() {
                   >
                     <div className="flex justify-between items-center">
                       <p className="font-semibold">Đơn hàng #{order._id}</p>
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm ${statusUI.color}`}
-                      >
-                        {statusUI.label}
-                      </span>
+                      <div className="flex flex-col items-end gap-1">
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm ${statusUI.color}`}
+                        >
+                          {statusUI.label}
+                        </span>
+
+                        {/* ✅ CHỈ HIỆN KHI ĐÃ GIAO */}
+                        {order.status === "DELIVERED" && (
+                          <span className="text-xs text-green-600 font-medium">
+                            ⭐ Bạn có thể đánh giá sản phẩm
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="text-sm text-gray-500">
-                      Ngày đặt: {new Date(order.createdAt).toLocaleString()}
+                      Ngày đặt:{" "}
+                      {new Date(order.createdAt).toLocaleString()}
                     </div>
 
                     <div className="flex justify-between items-center">
@@ -218,7 +261,7 @@ export default function OrderHistory() {
                       Thanh toán:{" "}
                       {order.paymentMethod === "COD"
                         ? "Thanh toán khi nhận hàng"
-                        : "Online"}
+                        : "Thanh toán online"}
                     </div>
 
                     {canCancel && (
@@ -267,6 +310,7 @@ export default function OrderHistory() {
         )}
       </div>
 
+      {/* ===== MODALS ===== */}
       <OrderDetailModal
         open={openDetail}
         orderId={selectedOrderId}

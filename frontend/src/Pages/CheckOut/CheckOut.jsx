@@ -126,14 +126,6 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (paymentMethod !== "cod") {
-      setToast({
-        message: "Thanh toán online chưa được hỗ trợ",
-        type: "error",
-      });
-      return;
-    }
-
     try {
       setIsSubmitting(true);
 
@@ -143,32 +135,67 @@ export default function CheckoutPage() {
         address: user.diaChi,
       };
 
-      if (checkoutMode === "buy-now") {
-        // ✅ BUY NOW
-        await apiService.checkoutBuyNowCOD({
-          items: items.map((it) => ({
-            productId: it.product?._id || it.productId,
-            color: it.color,
-            quantity: it.quantity,
-          })),
-          receiver,
-        });
-      } else {
-        // ✅ CART
-        await apiService.checkoutCOD({ receiver });
+      /* =========================
+        COD (GIỮ NGUYÊN)
+      ========================= */
+      if (paymentMethod === "cod") {
+        if (checkoutMode === "buy-now") {
+          await apiService.checkoutBuyNowCOD({
+            items: items.map((it) => ({
+              productId: it.product?._id || it.productId,
+              color: it.color,
+              quantity: it.quantity,
+            })),
+            receiver,
+          });
+        } else {
+          await apiService.checkoutCOD({ receiver });
+        }
+
+        setToast({ message: "🎉 Đặt hàng thành công!", type: "success" });
+        setTimeout(() => navigate("/orders"), 800);
+        return;
       }
 
-      setToast({
-        message: "🎉 Đặt hàng thành công!",
-        type: "success",
-      });
+      /* =========================
+        QR - VNPAY
+      ========================= */
+      if (paymentMethod === "qr") {
+        let res;
 
-      setTimeout(() => navigate("/orders"), 800);
+        if (checkoutMode === "buy-now") {
+          // 👉 BUY NOW + QR: bắt buộc gửi items
+          res = await apiService.createVNPayPayment({
+            receiver,
+            source: "buy-now",
+            items: items.map((it) => ({
+              productId: it.product?._id || it.productId,
+              color: it.color,
+              quantity: it.quantity,
+            })),
+          });
+        } else {
+          // 👉 CART + QR: BE tự lấy cart.items isSelected
+          res = await apiService.createVNPayPayment({
+            receiver,
+            source: "cart",
+          });
+        }
+
+        const paymentUrl = res?.data?.paymentUrl;
+        if (!paymentUrl) {
+          throw new Error("Không tạo được link thanh toán VNPay");
+        }
+
+        // 🚀 Redirect sang VNPay
+        window.location.href = paymentUrl;
+        return;
+      }
     } catch (err) {
       setToast({
         message:
           err?.response?.data?.message ||
-          "Đặt hàng thất bại, vui lòng thử lại",
+          "Thanh toán thất bại, vui lòng thử lại",
         type: "error",
       });
     } finally {
@@ -284,6 +311,16 @@ export default function CheckoutPage() {
             }`}
           >
             Thanh toán khi nhận hàng (COD)
+          </button>
+          <button
+            onClick={() => setPaymentMethod("qr")}
+            className={`p-4 rounded-xl border text-left mt-3 ${
+              paymentMethod === "qr"
+                ? "border-green-600 bg-green-50 text-green-600"
+                : ""
+            }`}
+          >
+            Thanh toán QR (VNPay)
           </button>
         </div>
 

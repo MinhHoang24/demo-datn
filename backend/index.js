@@ -16,6 +16,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { initSocket } = require("./socket/socketServer");
 const { registerSocketHandlers } = require("./socket/socketAuth");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/orders", orderRoutes);
 app.use("/notifications", notificationRoutes);
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/payments", paymentRoutes);
 
 const PORT = process.env.PORT || 5000;
 

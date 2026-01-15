@@ -1,176 +1,194 @@
-import React, { useState, useEffect, useContext} from "react";
-import "./Login.css";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import apiService from "../../Api/Api";
 import { AuthContext } from "../../Contexts/AuthContext";
-import { useNavigate } from 'react-router-dom';
-import Loader from '../../Components/Loader/Loader.jsx';
+import Loader from "../../Components/Loader/Loader";
 
 export default function LoginPage() {
-    const [identifier, setIdentifier] = useState("");
-    const [password, setPassword] = useState("");
-    const [errors, setErrors] = useState({});
-    const { login } = useContext(AuthContext);
-    const [needVerify, setNeedVerify] = useState(false);
-    const [resendMessage, setResendMessage] = useState("");
-    const navigate = useNavigate();
-    const [isLoggingIn, setIsLoggingIn] = useState(false);
-    const [isResending, setIsResending] = useState(false);  
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
+  const { login } = useContext(AuthContext);
+  const [needVerify, setNeedVerify] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
+  const navigate = useNavigate();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
-    const validatePhoneNumber = (phoneNumber) => {
-        return /^(0)[3|5|7|8|9][0-9]{8}$/.test(phoneNumber);
-    };
+  const validatePhoneNumber = (phoneNumber) =>
+    /^(0)[3|5|7|8|9][0-9]{8}$/.test(phoneNumber);
 
-    const validateEmail = (email) => {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    };
+  const validateEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-    const handleResendVerify = async () => {
-        try {
-            setIsResending(true);
-            await apiService.resendOtp({ email: identifier });
-            setResendMessage("Đã gửi lại mã OTP. Vui lòng kiểm tra email.");
-        } catch {
-            setResendMessage("Không thể gửi lại OTP. Vui lòng thử lại.");
-        } finally {
-            setIsResending(false);
-        }
-    };
+  const handleResendVerify = async () => {
+    try {
+      setIsResending(true);
+      await apiService.resendOtp({ email: identifier });
+      setResendMessage("Đã gửi lại mã OTP. Vui lòng kiểm tra email.");
+    } catch {
+      setResendMessage("Không thể gửi lại OTP. Vui lòng thử lại.");
+    } finally {
+      setIsResending(false);
+    }
+  };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errs = {};
 
-        const errors = {};
+    if (!identifier) {
+      errs.identifier = "Hãy nhập số điện thoại hoặc email!";
+    } else if (!validateEmail(identifier) && !validatePhoneNumber(identifier)) {
+      errs.identifier = "Hãy nhập số điện thoại hoặc email hợp lệ!";
+    }
 
-        if (!identifier) {
-            errors.identifier = "Hãy nhập số điện thoại hoặc email!";
-        } else {
-            // Kiểm tra hợp lệ email hoặc số điện thoại
-            if (!validateEmail(identifier) && !validatePhoneNumber(identifier)) {
-                errors.identifier = "Hãy nhập số điện thoại hoặc email hợp lệ!";
-            }
-        }
-        if (!password) {
-            errors.password = "Hãy nhập mật khẩu!";
-        }
+    if (!password) {
+      errs.password = "Hãy nhập mật khẩu!";
+    }
 
-        setErrors(errors);
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
 
-        if (Object.keys(errors).length > 0) {
+    try {
+      setIsLoggingIn(true);
+      const res = await apiService.loginUser({ identifier, password });
+      login(res.data.user, res.data.token);
+
+      if (res.data.success) {
+        localStorage.setItem("authToken", res.data.token);
+        localStorage.setItem("role", res.data.role);
+
+        navigate(res.data.role === "admin" ? "/admin" : "/");
+      }
+    } catch (error) {
+        const status = error?.response?.status;
+        const message = error?.response?.data?.message;
+
+        if (status === 403) {
+            setNeedVerify(true);
+            navigate(`/verify-otp?email=${encodeURIComponent(identifier)}`);
             return;
         }
 
-        // Tạo object gửi lên backend
-        // Bạn có thể tùy chỉnh backend nhận dạng bằng trường nào
-        // Ví dụ ở đây gửi 1 trường chung là "identifier"
-        const user = {
-            identifier: identifier,
-            password: password,
-        };
-
-        try {
-            setIsLoggingIn(true);
-            const response = await apiService.loginUser(user);
-
-            console.log(response.data.success);
-            console.log(response.data);
-
-            login(response.data.user, response.data.token);
-
-            if (response.data.success) {
-                if (response.data.role === "admin") {
-                    localStorage.setItem("authToken", response.data.token);
-                    localStorage.setItem("role", response.data.role);
-                    navigate("/admin");
-                } else {
-                    localStorage.setItem("authToken", response.data.token);
-                    localStorage.setItem("phoneNumber", response.data.phoneNumber);
-                    localStorage.setItem("userID", response.data.userID);
-                    localStorage.setItem('isLoggedIn', true);
-                    navigate("/");
-                }
-            } else {
-                const newErrors = { ...errors };
-                if (response.data.message === "User not found") {
-                    newErrors.identifier = "Tài khoản chưa được đăng ký!";
-                }
-                if (response.data.message === "Invalid password") {
-                    newErrors.password = "Mật khẩu không chính xác!";
-                }
-                setErrors(newErrors);
+        // ✅ map lỗi theo message từ BE
+        if (status === 400) {
+            if (message === "User not found") {
+            setErrors({ identifier: "Tài khoản chưa được đăng ký!" });
+            return;
             }
-        } catch (error) {
-        if (error.response?.status === 403) {
-            setNeedVerify(true);
-            navigate(`/verify-otp?email=${identifier}`);
-        } else {
-            setErrors({ apiError: "Đã có lỗi xảy ra. Vui lòng thử lại sau." });
+            if (message === "Sai mật khẩu") {
+            setErrors({ password: "Mật khẩu không chính xác!" });
+            return;
+            }
         }
-        } finally {
-            setIsLoggingIn(false);
-        }
-    };
 
-    return (
-        <div className="container">
-            <div className="login-form">
-                <div className="title">Chào mừng quay lại với <span className="app-name">MH SHOP</span></div>
-                <div className="subtitle">Đăng nhập vào tài khoản của bạn</div>
-                <form onSubmit={handleSubmit}>
-                    <div className="input-container">
-                        <div>
-                            <label htmlFor="identifier">Số điện thoại hoặc Email</label>
-                            <input
-                                type="text"
-                                id="identifier"
-                                value={identifier}
-                                onChange={(e) => setIdentifier(e.target.value)}
-                            />
-                        </div>
-                        {errors.identifier && <div className="error">{errors.identifier}</div>}
-                    </div>
-                    <div className="input-container">
-                        <div>
-                            <label htmlFor="password">Mật khẩu</label>
-                            <input type="password" id="password" onChange={(e) => setPassword(e.target.value)} />
-                        </div>
-                        {errors.password && <div className="error">{errors.password}</div>}
-                    </div>
-                    <div className="signup-link">Bạn chưa có tài khoản? <Link to="/register">Đăng ký ngay!</Link></div>
-                    <button 
-                        className="button-submit" 
-                        type="submit"
-                        disabled={isLoggingIn}
-                    >
-                        {isLoggingIn ? <Loader size={24} /> : "Đăng nhập"}
-                    </button>
-                </form>
-                <div>
-                    {needVerify && (
-                        <div className="verify-warning flex flex-col items-center">
-                            <div className="flex gap-1 pt-10 justify-center items-center">
-                                <p>Tài khoản chưa được xác thực.</p>
-                                <p
-                                    className={`underline cursor-pointer ${
-                                        isResending
-                                            ? "text-gray-400 cursor-not-allowed"
-                                            : "text-blue-600 hover:text-blue-300"
-                                    }`}
-                                    onClick={!isResending ? handleResendVerify : undefined}
-                                >
-                                    {isResending ? "Đang gửi..." : "Gửi lại mã OTP?"}
-                                </p>
-                            </div>
-                            {resendMessage && <p>{resendMessage}</p>}
-                        </div>
-                    )}
-                    {errors.apiError && <div className="error">{errors.apiError}</div>}
-                </div>
-            </div>
-        </div>
-    );
+        // fallback
+        setErrors({ apiError: message || "Đã có lỗi xảy ra. Vui lòng thử lại sau." });
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#f4f6fc] px-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl px-6 py-8 sm:px-10 sm:py-12">
+        {/* TITLE */}
+        <h1 className="text-center text-2xl sm:text-3xl font-bold text-[#1e0e4b]">
+          Chào mừng quay lại với{" "}
+          <span className="text-[#7747ff]">MH SHOP</span>
+        </h1>
+        <p className="text-center text-gray-600 mt-2 mb-8">
+          Đăng nhập vào tài khoản của bạn
+        </p>
+
+        {/* FORM */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* IDENTIFIER */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Số điện thoại hoặc Email
+            </label>
+            <input
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              className="w-full rounded-lg border px-4 py-3 text-base focus:border-[#7747ff] focus:ring-2 focus:ring-[#7747ff]/30 outline-none"
+            />
+            {errors.identifier && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.identifier}
+              </p>
+            )}
+          </div>
+
+          {/* PASSWORD */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mật khẩu
+            </label>
+            <input
+              type="password"
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-lg border px-4 py-3 text-base focus:border-[#7747ff] focus:ring-2 focus:ring-[#7747ff]/30 outline-none"
+            />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password}
+              </p>
+            )}
+          </div>
+
+          {/* SUBMIT */}
+          <button
+            type="submit"
+            disabled={isLoggingIn}
+            className="w-full rounded-lg py-3 text-lg font-semibold text-white bg-gradient-to-r from-[#55d2fc] to-[#1e47c1] hover:from-[#251ca2] hover:to-[#ac68ff] transition disabled:opacity-60 flex justify-center"
+          >
+            {isLoggingIn ? <Loader size={24} /> : "Đăng nhập"}
+          </button>
+        </form>
+
+        {/* REGISTER */}
+        <p className="text-center text-sm text-gray-600 mt-6">
+          Bạn chưa có tài khoản?{" "}
+          <Link
+            to="/register"
+            className="font-semibold text-red-500 hover:text-orange-500"
+          >
+            Đăng ký ngay!
+          </Link>
+        </p>
+
+        {/* VERIFY */}
+        {needVerify && (
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Tài khoản chưa được xác thực.
+            </p>
+            <button
+              onClick={!isResending ? handleResendVerify : undefined}
+              disabled={isResending}
+              className="mt-2 text-blue-600 underline disabled:text-gray-400"
+            >
+              {isResending ? "Đang gửi..." : "Gửi lại mã OTP?"}
+            </button>
+            {resendMessage && (
+              <p className="text-sm mt-2">{resendMessage}</p>
+            )}
+          </div>
+        )}
+
+        {errors.apiError && (
+          <p className="text-red-500 text-sm text-center mt-4">
+            {errors.apiError}
+          </p>
+        )}
+      </div>
+    </div>
+  );
 }

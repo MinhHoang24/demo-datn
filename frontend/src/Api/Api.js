@@ -95,6 +95,16 @@ const apiService = {
       items,
       receiver,
     }),
+  
+  createVNPayPayment: (receiver) =>
+    apiInstance.post("/payments/vnpay/create", receiver ? { receiver } : {}),
+
+  getOrderByTxnRef: (txnRef) =>
+    apiInstance.get(`/orders/by-txn/${txnRef}`),
+
+  // (OPTIONAL) FE có thể dùng để poll trạng thái nếu cần sau
+  getPaymentSession: (txnRef) =>
+    apiInstance.get(`/payments/session/${txnRef}`),
 
   getNotifications: (params) => apiInstance.get("/notifications", { params }),
 

@@ -62,32 +62,43 @@ export default function OrderDetailModal({
     >
       <div className="space-y-4">
         {order.items.map((it, idx) => (
-          <div
+          <Link
             key={idx}
-            className="flex gap-4 border-b pb-3 hover:cursor-pointer"
+            to={`/product/${it.productId}`}
+            className="block"
+            onClick={onClose}
           >
-            <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden">
-              <img
-                src={it.variant?.image || it.image}
-                alt={it.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <div className="flex gap-4 border-b pb-3 hover:bg-gray-50 cursor-pointer">
+              <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden">
+                <img
+                  src={it.variant?.image || it.image}
+                  alt={it.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
 
-            <div className="flex-1">
-              <p className="font-medium">
-                {it.name}
-              </p>
-              <p className="text-sm text-gray-500">
-                Màu: {it.variant?.color || "—"} | SL:{" "}
-                {it.quantity}
-              </p>
-            </div>
+              <div className="flex-1">
+                <p className="font-medium hover:text-blue-600">
+                  {it.name}
+                </p>
 
-            <div className="font-semibold">
-              {formatPrice(it.lineTotal)}
+                <p className="text-sm text-gray-500">
+                  Màu: {it.variant?.color || "—"} | SL: {it.quantity}
+                </p>
+
+                {/* ✅ CHỈ HIỆN KHI ĐÃ GIAO */}
+                {order.status === "DELIVERED" && (
+                  <p className="mt-1 text-sm text-green-600 font-medium">
+                    👉 Bạn có thể vào đánh giá sản phẩm này
+                  </p>
+                )}
+              </div>
+
+              <div className="font-semibold">
+                {formatPrice(it.lineTotal)}
+              </div>
             </div>
-          </div>
+          </Link>
         ))}
 
         <div className="flex justify-between font-bold text-lg pt-2">

@@ -57,7 +57,7 @@ async function notifyOrderCancelledByUser({ order }) {
   await notifyAdmins({
     type: NOTI_TYPE.ORDER_CANCELLED,
     title: "User hủy đơn hàng",
-    message: `User ${order.userId} đã hủy đơn #${order._id}. Lý do: ${order.cancelReason}`,
+    message: `User ${order.userId} đã hủy đơn #${order._id}.`,
     data: { orderId: order._id, status: order.status },
   });
 }

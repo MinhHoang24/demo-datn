@@ -32,4 +32,17 @@ router.patch("/:orderId/cancel", protect, cancelOrderByUser);
 // GET /orders/:orderId
 router.get("/:orderId", protect, getMyOrderById);
 
+router.get("/orders/by-txn/:txnRef", protect, async (req, res) => {
+  const order = await Order.findOne({
+    paymentTxnRef: req.params.txnRef,
+    userId: req.userId,
+  });
+
+  if (!order) {
+    return res.status(404).json({ message: "Order not found" });
+  }
+
+  res.json({ order });
+});
+
 module.exports = router;
