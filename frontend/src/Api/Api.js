@@ -149,6 +149,12 @@ const apiService = {
     apiInstance.post("/admin/upload/upload-image", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
+
+  forgotPassword: (data) =>
+    apiInstance.post("/forgot-password", data),
+
+  resetPassword: (token, data) =>
+    apiInstance.post(`/reset-password/${token}`, data),
 };
 
 export default apiService;

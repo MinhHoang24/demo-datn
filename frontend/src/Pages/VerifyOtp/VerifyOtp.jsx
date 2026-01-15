@@ -30,29 +30,46 @@ export default function VerifyOtp() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="login-form w-[360px] text-center">
-        <h2 className="text-lg font-bold">🔐 Xác thực OTP</h2>
-        <p className="text-sm text-gray-500">
-          Nhập mã OTP đã gửi tới email <br />
-          <b>{email}</b>
+    <div className="min-h-screen flex items-center justify-center bg-[#f4f6fc] px-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl px-6 py-8 sm:px-10 sm:py-10 text-center">
+        {/* TITLE */}
+        <h2 className="text-2xl font-bold text-[#1e0e4b]">
+          🔐 Xác thực OTP
+        </h2>
+
+        <p className="text-sm text-gray-600 mt-2">
+          Nhập mã OTP đã gửi tới email
+          <br />
+          <span className="font-semibold text-gray-800 break-all">
+            {email}
+          </span>
         </p>
 
+        {/* OTP INPUT */}
         <input
-          className="mt-4 w-full text-center tracking-widest"
           type="text"
           maxLength={6}
           value={otp}
-          onChange={(e) => setOtp(e.target.value)}
+          onChange={(e) => {
+            setOtp(e.target.value.replace(/\D/g, ""));
+            setError("");
+          }}
           placeholder="------"
+          className="mt-6 w-full text-center text-2xl tracking-[0.5em] font-semibold border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#7747ff]/40"
         />
 
-        {error && <p className="text-red-500 mt-2">{error}</p>}
+        {/* ERROR */}
+        {error && (
+          <p className="text-red-500 text-sm mt-3">
+            {error}
+          </p>
+        )}
 
+        {/* BUTTON */}
         <button
-          className="button-submit mt-4 w-full"
           onClick={handleVerify}
           disabled={loading}
+          className="mt-6 w-full flex justify-center items-center rounded-lg py-3 text-lg font-semibold text-white bg-gradient-to-r from-[#55d2fc] to-[#1e47c1] hover:from-[#251ca2] hover:to-[#ac68ff] transition disabled:opacity-60"
         >
           {loading ? <Loader size={24} /> : "Xác nhận"}
         </button>

@@ -1,8 +1,10 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
-const { registerSchema, updateProfileSchema, changePasswordSchema } = require('../validation/user');
+const { registerSchema, updateProfileSchema } = require('../validation/user');
 const sendVerifyEmail = require('../utils/sendVerifyEmail');
+const crypto = require("crypto");
+const sendResetPasswordEmail = require("../utils/sendResetPasswordEmail");
 
 // Xem hồ sơ người dùng
 exports.getProfile = async (req, res) => {
@@ -265,3 +267,66 @@ exports.resendOtp = async (req, res) => {
   }
 };
 
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      message: "Email không tồn tại trong hệ thống",
+    });
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+
+  user.resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 phút
+  await user.save();
+
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+
+  await sendResetPasswordEmail(user.email, resetUrl);
+
+  return res.json({
+    success: true,
+    message: "Link đặt lại mật khẩu đã được gửi về email",
+  });
+};
+
+exports.resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      message: "Token không hợp lệ hoặc đã hết hạn",
+    });
+  }
+
+  user.password = await bcrypt.hash(password, 10);
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+
+  await user.save();
+
+  return res.json({
+    success: true,
+    message: "Đặt lại mật khẩu thành công",
+  });
+};

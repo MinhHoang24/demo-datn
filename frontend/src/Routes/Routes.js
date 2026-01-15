@@ -14,6 +14,8 @@ import Admin from "../Pages/AdminPage/AdminPage";
 import VerifyOtp from "../Pages/VerifyOtp/VerifyOtp";
 import PaymentSuccess from "../Pages/Payment/PaymentSuccess";
 import PaymentFail from "../Pages/Payment/PaymentFail";
+import ForgotPassword from "../Pages/FotgotPassword/ForgotPassword";
+import ResetPassword from "../Pages/FotgotPassword/ResetPassword";
 
 export const publicRoutes = [
   // ================= USER LAYOUT =================
@@ -64,6 +66,8 @@ export const publicRoutes = [
       { path: "/login", element: <LoginPage /> },
       { path: "/register", element: <RegisterPage /> },
       { path: "/verify-otp", element: <VerifyOtp /> },
+      { path: "/forgot-password", element: <ForgotPassword /> },
+      { path: "/reset-password/:token", element: <ResetPassword /> },
     ],
   },
 

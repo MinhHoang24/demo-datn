@@ -164,6 +164,12 @@ export default function LoginPage() {
           </Link>
         </p>
 
+        <p className="text-sm text-center mt-4">
+          <Link to="/forgot-password" className="text-blue-600 underline">
+            Quên mật khẩu?
+          </Link>
+        </p>
+
         {/* VERIFY */}
         {needVerify && (
           <div className="mt-6 text-center">
