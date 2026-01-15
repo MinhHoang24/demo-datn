@@ -1,254 +1,136 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Button, Modal, Space, Table, message, Input, Select } from "antd";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  Button,
+  Modal,
+  Space,
+  Table,
+  message,
+  Input,
+  Select,
+} from "antd";
 import {
   PlusCircleFilled,
   DeleteFilled,
   ExclamationCircleFilled,
   SearchOutlined,
 } from "@ant-design/icons";
-import Highlighter from 'react-highlight-words';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar } from "@fortawesome/free-solid-svg-icons";
+
 import AddProduct from "./AddProduct";
 import ProductDetails from "./ProductDetails";
 import apiService from "../../Api/Api";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStar } from '@fortawesome/free-solid-svg-icons';
+import { CATEGORY_TITLES } from "../../Constants/Category.ts";
 
 const AdminProduct = () => {
-  const [selectedCategory, setSelectedCategory] = useState("ALL");
-  const [nameSearch, setNameSearch] = useState("");
-  const [refresh, setRefresh] = useState(false);
+  /* ================= TABLE STATE ================= */
   const [products, setProducts] = useState([]);
-  const [modalChild, setModalChild] = useState(null);
-
   const [loading, setLoading] = useState(false);
 
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(5);
+  const [total, setTotal] = useState(0);
+
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState(undefined);
+  const [sort, setSort] = useState(undefined);
+
+  const [modalChild, setModalChild] = useState(null);
+
+  /* ================= FETCH DATA (BE) ================= */
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await apiService.getAllProducts({
+        page,
+        limit,
+        q: search || undefined,
+        category,
+        sort,
+      });
+
+      setProducts(res.data.products || []);
+      setTotal(res.data.pagination?.total || 0);
+    } catch (err) {
+      console.error(err);
+      message.error("Không thể tải danh sách sản phẩm");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, limit, search, category, sort]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await apiService.getAllProducts();
-        const rawData = response.data.products || []; 
-        if (Array.isArray(rawData)) {
-          setProducts(rawData); // Cập nhật state sản phẩm
-        } else {
-          console.error("Dữ liệu không phải mảng:", rawData);
-          setProducts([]);  // Trả về mảng rỗng nếu dữ liệu không hợp lệ
-        }
-      
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        message.error('Không thể lấy dữ liệu sản phẩm');
-        setProducts([]); 
-      } finally {
-         setLoading(false);
-      }
-    };
     fetchData();
-  }, [refresh]);
-  const onRefresh = () => {
-    setRefresh(prev => !prev);
-  };
+  }, [fetchData]);
 
-  const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState('');
-  const searchInput = useRef(null);
-
-  const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    confirm();
-    setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
-  };
-  const getColumnSearchProps = (dataIndex) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-      <div
-        style={{
-          padding: 8,
-        }}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        <Input
-          ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
-          style={{
-            marginBottom: 8,
-            display: 'block',
-          }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{
-              width: 90,
-            }}
-          >
-            Search
-          </Button>
-          <Button
-            onClick={() => {
-              clearFilters && clearFilters();
-              confirm();
-              setSearchText('');
-              setSearchedColumn(dataIndex);
-            }}
-            size="small"
-            style={{
-              width: 90,
-            }}
-          >
-            Reset
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              close();
-            }}
-          >
-            close
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered) => (
-      <SearchOutlined
-        style={{
-          color: filtered ? '#1677ff' : undefined,
-        }}
-      />
-    ),
-    onFilter: (value, record) =>
-      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
-      filterDropdownProps: {
-        onOpenChange: (visible) => {
-          if (visible) {
-            setTimeout(() => searchInput.current?.select(), 100);
-          }
-        }
-      },
-    render: (text) =>
-      searchedColumn === dataIndex ? (
-        <Highlighter
-          highlightStyle={{
-            backgroundColor: '#ffc069',
-            padding: 0,
-          }}
-          searchWords={[searchText]}
-          autoEscape
-          textToHighlight={text ? text.toString() : ''}
-        />
-      ) : (
-        text
-      ),
-  });
-
+  /* ================= DELETE ================= */
   const deleteProduct = async (record) => {
     try {
-      console.log('Record:', record);
-      await apiService.deleteProduct(record._id); 
-      const updatedProducts = products.filter(
-        (product) => product._id !== record._id
-      );
-      setProducts(updatedProducts);
+      await apiService.deleteProduct(record._id);
       message.success(`Đã xóa sản phẩm: ${record.name}`);
-    } catch (error) {
-      console.error('Lỗi khi xóa sản phẩm:', error);
-      message.error(`Xóa sản phẩm thất bại: ${record.name}`);
+      fetchData();
+    } catch {
+      message.error("Xóa sản phẩm thất bại");
     }
   };
-  
+
   const { confirm } = Modal;
   const showDeleteConfirm = (product) => {
     confirm({
-      title: `Xác nhận xóa sản phẩm ${product.name}!`,
+      title: `Xác nhận xóa sản phẩm ${product.name}`,
       icon: <ExclamationCircleFilled />,
-      content: `Mã sản phẩm: ${product._id}`,
       onOk() {
         deleteProduct(product);
       },
-      onCancel() {},
     });
   };
- 
+
+  /* ================= TABLE COLUMNS ================= */
   const columns = [
     {
       title: "Mã",
       dataIndex: "_id",
-      key: "MaHangHoa",
       ellipsis: true,
-      sorter: (a, b) => a._id.localeCompare(b._id),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearchProps('_id'),
     },
     {
       title: "Loại",
       dataIndex: "category",
-      key: "LoaiHangHoa",
-      ellipsis: true,
-      sorter: (a, b) => a.category.localeCompare(b.category),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearchProps('category'),
+      render: (c) => CATEGORY_TITLES[c] || c,
+      sorter: true,
     },
     {
       title: "Tên",
       dataIndex: "name",
-      key: "TenHangHoa",
+      sorter: true,
       ellipsis: true,
-      sorter: (a, b) => a.name.localeCompare(b.name),
-      sortDirections: ['descend', 'ascend'],
-      ...getColumnSearchProps('name'),
     },
     {
       title: "Giá",
       dataIndex: "price",
-      key: "Gia",
-      render: (text) => text.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }),
-      ellipsis: true,
-      sorter: (a, b) => a.price - b.price,
-      sortDirections: ['descend', 'ascend'],
-    },
-    {
-      title: "Số lượng",
-      key: "quantity",
-      render: (_, record) => {
-        const totalQuantity = (record.variants || []).reduce(
-          (sum, v) => sum + (v.quantity || 0),
-          0
-        );
-        return totalQuantity;
-      },
-      sorter: (a, b) => {
-        const qa = (a.variants || []).reduce((s, v) => s + (v.quantity || 0), 0);
-        const qb = (b.variants || []).reduce((s, v) => s + (v.quantity || 0), 0);
-        return qa - qb;
-      },
-      ellipsis: true,
+      sorter: true,
+      render: (p) =>
+        p.toLocaleString("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }),
     },
     {
       title: "Đánh giá",
       dataIndex: "rating",
-      render: (star) =>
-        <span>{star} <FontAwesomeIcon icon={faStar} color={"gold"} /></span>,
-      key: "rating",
-      sorter: (a, b) => a.rating - b.rating,
-      sortDirections: ['descend', 'ascend'],
-      ellipsis: true,
+      sorter: true,
+      render: (r) => (
+        <span>
+          {r} <FontAwesomeIcon icon={faStar} color="gold" />
+        </span>
+      ),
     },
     {
       title: "Action",
-      width: 76,
+      width: 80,
       render: (_, record) => (
         <Button
-          style={{transform: "scale(1.5,1.5)"}}
-          type="text"
-          size="small"
-          shape="circle"
           danger
+          type="text"
           icon={<DeleteFilled />}
           onClick={(e) => {
             e.stopPropagation();
@@ -259,95 +141,103 @@ const AdminProduct = () => {
     },
   ];
 
-  const categories = React.useMemo(() => {
-    const set = new Set(products.map(p => p.category));
-    return ["ALL", ...Array.from(set)];
-  }, [products]);
+  /* ================= TABLE CHANGE ================= */
+  const handleTableChange = (pagination, filters, sorter) => {
+    setPage(pagination.current);
+    setLimit(pagination.pageSize);
 
-  const filteredProducts = React.useMemo(() => {
-    return products.filter(p => {
-      const matchCategory =
-        selectedCategory === "ALL" || p.category === selectedCategory;
+    if (sorter?.order) {
+      const field = sorter.field;
+      const order = sorter.order === "ascend" ? "asc" : "desc";
 
-      const matchName =
-        p.name.toLowerCase().includes(nameSearch.toLowerCase());
-
-      return matchCategory && matchName;
-    });
-  }, [products, selectedCategory, nameSearch]);
+      if (field === "rating") setSort("rating_desc");
+      else setSort(`${field}_${order}`);
+    } else {
+      setSort(undefined);
+    }
+  };
 
   return (
     <div>
-      <Space
-        style={{
-          marginBottom: 16,
-        }}
-      >
-        <Button type="primary" onClick={()=>setModalChild(<AddProduct setModalChild={setModalChild} handleRefresh={onRefresh}/>)}>
+      <Space style={{ marginBottom: 16 }}>
+        <Button
+          type="primary"
+          onClick={() =>
+            setModalChild(
+              <AddProduct
+                setModalChild={setModalChild}
+                handleRefresh={fetchData}
+              />
+            )
+          }
+        >
           <PlusCircleFilled />
           Thêm sản phẩm
         </Button>
+
         <Select
-          style={{ width: 180 }}
-          listHeight={400}
-          value={selectedCategory}
-          onChange={setSelectedCategory}
+          allowClear
+          placeholder="Loại sản phẩm"
+          style={{ width: 200 }}
+          onChange={(v) => {
+            setCategory(v);
+            setPage(1);
+          }}
         >
-          {categories.map(c => (
-            <Select.Option key={c} value={c}>
-              {c === "ALL" ? "Tất cả" : c}
+          {Object.entries(CATEGORY_TITLES).map(([k, v]) => (
+            <Select.Option key={k} value={k}>
+              {v}
             </Select.Option>
           ))}
         </Select>
+
         <Input
           allowClear
-          placeholder="Tìm theo tên sản phẩm"
           prefix={<SearchOutlined />}
-          style={{ width: 360 }}
-          value={nameSearch}
-          onChange={(e) => setNameSearch(e.target.value)}
+          placeholder="Tìm theo tên"
+          style={{ width: 300 }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
         />
       </Space>
 
       <Modal
-        title={false}
-        centered
-        open={modalChild !== null}
-        onCancel={() => setModalChild(null)}
-        maskClosable={false}
+        open={!!modalChild}
         footer={null}
-        destroyOnHidden={true}
+        onCancel={() => setModalChild(null)}
         width="auto"
+        destroyOnClose
       >
         {modalChild}
       </Modal>
+
       <Table
-        onRow={(record, rowIndex) => {
-          return {
-            onClick: () => {
-              setModalChild(<ProductDetails products={record} setModalChild={setModalChild} handleRefresh={onRefresh} />);
-            },
-            onMouseEnter: (event) => {
-              event.currentTarget.style.cursor = "pointer";
-            },
-            onMouseLeave: (event) => {
-              event.currentTarget.style.cursor = "default";
-            },
-          };
-        }}
-        columns={columns}
-        dataSource={filteredProducts}
         rowKey="_id"
+        columns={columns}
+        dataSource={products}
         loading={loading}
+        onChange={handleTableChange}
         pagination={{
-          pageSizeOptions: ['5', '10', '15'], 
-          showSizeChanger: true, 
-          defaultPageSize: 5, 
-          style: { marginBottom: "20px" }, 
+          current: page,
+          pageSize: limit,
+          total,
+          showSizeChanger: true,
         }}
-        
+        onRow={(record) => ({
+          onClick: () =>
+            setModalChild(
+              <ProductDetails
+                products={record}
+                setModalChild={setModalChild}
+                handleRefresh={fetchData}
+              />
+            ),
+        })}
       />
     </div>
   );
 };
+
 export default AdminProduct;

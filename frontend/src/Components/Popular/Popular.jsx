@@ -8,24 +8,30 @@ import { CATEGORY_ROUTES, CATEGORY_TITLES } from "../../Constants/Category.ts";
 
 export default function Popular({ category }) {
   const [products, setProducts] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(5);
+  const [total, setTotal] = useState(0);
+
   const [slidesPerView, setSlidesPerView] = useState(5);
   const wrapperRef = useRef(null);
 
+  /* ================= FETCH (BE PAGINATION) ================= */
   useEffect(() => {
     const fetchData = async () => {
-      const res = await apiService.getProducts();
-      const filtered = res.data.formattedProducts.filter(
-        (p) =>
-          p.category.toLowerCase().trim() ===
-          category.toLowerCase().trim()
-      );
-      setProducts(filtered);
-      setCurrentIndex(0);
-    };
-    fetchData();
-  }, [category]);
+      const res = await apiService.getProducts({
+        category,
+        page,
+        limit,
+      });
 
+      setProducts(res.data.products || []);
+      setTotal(res.data.pagination?.total || 0);
+    };
+
+    fetchData();
+  }, [category, page, limit]);
+
+  /* ================= RESPONSIVE ================= */
   useEffect(() => {
     const update = () => {
       if (window.innerWidth < 720) setSlidesPerView(2);
@@ -38,30 +44,34 @@ export default function Popular({ category }) {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  const maxIndex = Math.max(products.length - slidesPerView, 0);
+  /* ================= PAGINATION LOGIC ================= */
+  const totalPages = Math.ceil(total / limit);
 
+  const from = total === 0 ? 0 : (page - 1) * limit + 1;
+  const to = Math.min(page * limit, total);
+
+  /* ================= RENDER ================= */
   return (
     products.length > 0 && (
       <section className="mx-12 mb-12">
-        <div className="flex items-center justify-between mb-4">
+        {/* HEADER */}
+        <div className="flex items-center justify-between mb-2">
           <Link
             to={CATEGORY_ROUTES[category] || "/"}
             className="text-xl font-bold text-gray-800"
           >
             {CATEGORY_TITLES[category]} – HOT DEAL
           </Link>
+
+          {/* COUNTER */}
+          <span className="text-sm text-gray-500">
+            Hiển thị {from}–{to} / {total} sản phẩm
+          </span>
         </div>
 
+        {/* SLIDER */}
         <div className="relative overflow-hidden">
-          <div
-            ref={wrapperRef}
-            className="flex transition-transform duration-300"
-            style={{
-              transform: `translateX(-${
-                (100 / slidesPerView) * currentIndex
-              }%)`,
-            }}
-          >
+          <div ref={wrapperRef} className="flex transition-transform duration-300">
             {products.map((item) => (
               <div
                 key={item._id}
@@ -80,18 +90,20 @@ export default function Popular({ category }) {
             ))}
           </div>
 
-          {currentIndex > 0 && (
+          {/* PREV */}
+          {page > 1 && (
             <button
-              onClick={() => setCurrentIndex((i) => i - 1)}
+              onClick={() => setPage((p) => p - 1)}
               className="absolute left-0 top-1/2 -translate-y-1/2 bg-white p-2 shadow rounded-full"
             >
               <FontAwesomeIcon icon={faChevronLeft} />
             </button>
           )}
 
-          {currentIndex < maxIndex && (
+          {/* NEXT */}
+          {page < totalPages && (
             <button
-              onClick={() => setCurrentIndex((i) => i + 1)}
+              onClick={() => setPage((p) => p + 1)}
               className="absolute right-0 top-1/2 -translate-y-1/2 bg-white p-2 shadow rounded-full"
             >
               <FontAwesomeIcon icon={faChevronRight} />

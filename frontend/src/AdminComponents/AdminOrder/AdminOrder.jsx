@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Table, Tag, Modal, message, Select, Space } from "antd";
+import React, { useEffect, useState, useCallback } from "react";
+import { Table, Tag, Modal, message, Select, Space, Input } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
 import apiService from "../../Api/Api";
 import {
   ORDER_STATUS_LABEL,
@@ -9,6 +10,7 @@ import AdminOrderDetail from "./OderDetails";
 
 const { Option } = Select;
 
+/* ================= UTILS ================= */
 const formatDate = (iso) =>
   new Date(iso).toLocaleString("vi-VN");
 
@@ -19,42 +21,44 @@ const formatCurrency = (v) =>
   });
 
 export default function AdminOrder() {
+  /* ================= STATE ================= */
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
+
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+
+  const [status, setStatus] = useState(undefined);
+  const [search, setSearch] = useState("");
 
   const [openDetail, setOpenDetail] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
 
-  // 🔹 FILTER STATE
-  const [statusFilter, setStatusFilter] = useState("ALL");
-
-  /* ================= FETCH ================= */
-  const fetchOrders = async () => {
+  /* ================= FETCH (BE) ================= */
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await apiService.getAdminOrders({});
+      const res = await apiService.getAdminOrders({
+        page,
+        limit,
+        status,
+        q: search || undefined,
+      });
+
       setOrders(res.data.orders || []);
-    } catch {
+      setTotal(res.data.pagination?.total || 0);
+    } catch (err) {
+      console.error(err);
       message.error("Không thể tải danh sách đơn hàng");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, status, search]);
 
   useEffect(() => {
     fetchOrders();
-  }, []);
-
-  const openModal = (orderId) => {
-    setSelectedOrderId(orderId);
-    setOpenDetail(true);
-  };
-
-  /* ================= FILTER LOGIC ================= */
-  const filteredOrders = useMemo(() => {
-    if (statusFilter === "ALL") return orders;
-    return orders.filter((o) => o.status === statusFilter);
-  }, [orders, statusFilter]);
+  }, [fetchOrders]);
 
   /* ================= TABLE ================= */
   const columns = [
@@ -71,11 +75,13 @@ export default function AdminOrder() {
       title: "Ngày đặt",
       dataIndex: "createdAt",
       render: formatDate,
+      sorter: true,
     },
     {
       title: "Tổng tiền",
       dataIndex: "total",
       render: formatCurrency,
+      sorter: true,
     },
     {
       title: "Trạng thái",
@@ -86,34 +92,75 @@ export default function AdminOrder() {
         </Tag>
       ),
     },
+    {
+      title: "Thanh toán",
+      render: (_, r) => {
+        if (r.paymentMethod === "COD") return "COD";
+        if (r.paymentGateway === "VNPAY") return "VNPay (QR)";
+        return "—";
+      },
+    },
   ];
+
+  /* ================= TABLE CHANGE ================= */
+  const handleTableChange = (pagination) => {
+    setPage(pagination.current);
+    setLimit(pagination.pageSize);
+  };
 
   return (
     <>
       {/* ===== FILTER BAR ===== */}
-      <Space style={{ marginBottom: 16 }}>
+      <Space style={{ marginBottom: 16 }} wrap>
         <span>Lọc trạng thái:</span>
         <Select
-          value={statusFilter}
-          onChange={setStatusFilter}
+          allowClear
+          placeholder="Tất cả"
           style={{ width: 220 }}
+          onChange={(v) => {
+            setStatus(v);
+            setPage(1);
+          }}
         >
-          <Option value="ALL">Tất cả</Option>
           {Object.keys(ORDER_STATUS_LABEL).map((key) => (
             <Option key={key} value={key}>
               {ORDER_STATUS_LABEL[key]}
             </Option>
           ))}
         </Select>
+
+        {/* 🔍 SEARCH BUYER */}
+        <Input
+          placeholder="Tìm người mua (tên / sđt / email)"
+          prefix={<SearchOutlined />}
+          allowClear
+          style={{ width: 300 }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
       </Space>
 
+      {/* ===== TABLE ===== */}
       <Table
         rowKey="_id"
         loading={loading}
         columns={columns}
-        dataSource={filteredOrders}
+        dataSource={orders}
+        onChange={handleTableChange}
+        pagination={{
+          current: page,
+          pageSize: limit,
+          total,
+          showSizeChanger: true,
+          pageSizeOptions: ["10", "20", "50"],
+        }}
         onRow={(record) => ({
-          onClick: () => openModal(record._id),
+          onClick: () => {
+            setSelectedOrderId(record._id);
+            setOpenDetail(true);
+          },
           style: { cursor: "pointer" },
         })}
       />

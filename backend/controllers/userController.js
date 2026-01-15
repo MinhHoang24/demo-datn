@@ -141,7 +141,7 @@ exports.registerUser = async (req, res) => {
       email,
       isVerified: false,
       otpCode: otp,
-      otpExpires: Date.now() + 1000 * 60 * 10, // 10 phút
+      otpExpires: Date.now() + 1000 * 60 * 10,
     });
 
     await newUser.save();

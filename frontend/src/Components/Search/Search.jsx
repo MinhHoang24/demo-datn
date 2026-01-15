@@ -5,7 +5,6 @@ import "./Search.css";
 import HeadlessTippy from "@tippyjs/react/headless";
 import ItemSearch from "../ItemSearch/ItemSearch";
 import apiService from "../../Api/Api";
-import unidecode from 'unidecode';
 
 
 function Search() {
@@ -15,22 +14,6 @@ function Search() {
     const [loading, setLoading] = useState(false); // Trạng thái loading
     const inputRef = useRef();
 
-    const removeVietnameseTones = (str) => {
-      // Thay thế các ký tự có dấu bằng ký tự không dấu
-      return str
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/đ/g, "d") // Thay thế 'đ' bằng 'd'
-          .replace(/Đ/g, "D"); // Thay thế 'Đ' bằng 'D'
-  };
-
-    // Hàm xóa input
-    const handleClear = () => {
-        setSearchValue('');
-        setSearchResult([]);
-        inputRef.current.focus();
-    };
-
     // Ẩn kết quả
     const handleHideResult = () => {
         setShowResult(false);
@@ -38,46 +21,33 @@ function Search() {
 
     // Gọi API để lấy sản phẩm khi từ khóa thay đổi
     useEffect(() => {
-      if (!searchValue.trim()) {
-          setSearchResult([]);
-          setShowResult(false);
-          return;
-      }
-  
-      const fetchProducts = async () => {
-          setLoading(true);
-          try {
-              // Gọi API để lấy danh sách sản phẩm
-              const response = await apiService.getProducts();
-              const products = response.data.formattedProducts || [];
-  
-              // Lọc sản phẩm dựa trên searchValue
-              const filteredResults = products.filter((product) => {
-                // Loại bỏ dấu từ tên sản phẩm và từ khóa tìm kiếm
-                const name = removeVietnameseTones(product.name.toLowerCase()); // Chuyển tên về chữ thường và loại bỏ dấu
-                const search = removeVietnameseTones(searchValue.toLowerCase()); // Chuyển từ khóa tìm kiếm về chữ thường và loại bỏ dấu
-            
-                // Kiểm tra nếu `name` có chứa `search` dù chỉ một phần ký tự
-                return name.includes(search);
-            });
+    if (!searchValue.trim()) {
+        setSearchResult([]);
+        setShowResult(false);
+        return;
+    }
 
-              console.log(filteredResults)
-  
-              // Cập nhật kết quả tìm kiếm
-              setSearchResult(filteredResults);
-              setShowResult(true);
-          } catch (error) {
-              console.error("Lỗi khi gọi API:", error);
-              setSearchResult([]);
-          } finally {
-              setLoading(false);
-          }
-      };
-  
-      const debounceFetch = setTimeout(fetchProducts, 500); // Debounce 500ms
-      return () => clearTimeout(debounceFetch);
-  }, [searchValue]);
-  
+    const fetchProducts = async () => {
+        setLoading(true);
+        try {
+        const res = await apiService.getProducts({
+            q: searchValue,
+            page: 1,
+            limit: 8,
+        });
+
+        setSearchResult(res.data.products || []);
+        setShowResult(true);
+        } catch {
+        setSearchResult([]);
+        } finally {
+        setLoading(false);
+        }
+    };
+
+    const t = setTimeout(fetchProducts, 400);
+    return () => clearTimeout(t);
+    }, [searchValue]);
 
     // Xử lý thay đổi input
     const handleChange = (e) => {

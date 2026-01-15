@@ -151,24 +151,31 @@ export default function ProductInfo({ product, selectedVariantIndex, onChangeVar
 
       <div className="flex gap-4 pt-2">
         <button
+          disabled={variant.quantity === 0}
           onClick={() =>
             navigate("/checkout", {
               state: {
+                from: "buy-now",
                 items: [
                   {
                     product,
+                    productId: product._id,
                     color: variant.color,
                     quantity,
                     price: finalPrice,
                   },
                 ],
-                from: "buy-now",
               },
             })
           }
-          className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+          className={`flex-1 py-3 rounded-lg font-semibold transition
+            ${
+              variant.quantity === 0
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+            }`}
         >
-          MUA NGAY
+          {variant.quantity === 0 ? "HẾT HÀNG" : "MUA NGAY"}
         </button>
 
         <button

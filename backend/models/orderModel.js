@@ -1,15 +1,15 @@
 const mongoose = require("mongoose");
 
 const ORDER_STATUS = {
-  PENDING: "PENDING", // chờ xác nhận
-  CONFIRMED: "CONFIRMED", // đã xác nhận / đang giao
-  DELIVERED: "DELIVERED", // đã giao
-  CANCELLED: "CANCELLED", // hủy
+  PENDING: "PENDING",
+  CONFIRMED: "CONFIRMED",
+  DELIVERED: "DELIVERED",
+  CANCELLED: "CANCELLED",
 };
 
 const PAYMENT_METHOD = {
   COD: "COD",
-  QR: "QR", // để sau
+  QR: "QR", // VNPay
 };
 
 const PAYMENT_STATUS = {
@@ -25,7 +25,6 @@ const orderItemSchema = new mongoose.Schema(
       required: true,
     },
 
-    // snapshot để đơn không bị ảnh hưởng khi product thay đổi
     name: { type: String, required: true },
     image: { type: String, required: true },
 
@@ -34,10 +33,9 @@ const orderItemSchema = new mongoose.Schema(
       image: { type: String, default: "" },
     },
 
-    unitPrice: { type: Number, required: true }, // giá tại thời điểm mua (đã tính sale nếu có)
+    unitPrice: { type: Number, required: true },
     quantity: { type: Number, required: true, min: 1 },
-
-    lineTotal: { type: Number, required: true }, // unitPrice * quantity
+    lineTotal: { type: Number, required: true },
   },
   { _id: false }
 );
@@ -60,6 +58,7 @@ const orderSchema = new mongoose.Schema(
       index: true,
     },
 
+    /* ================= PAYMENT ================= */
     paymentMethod: {
       type: String,
       enum: Object.values(PAYMENT_METHOD),
@@ -72,10 +71,33 @@ const orderSchema = new mongoose.Schema(
       default: PAYMENT_STATUS.UNPAID,
     },
 
+    paymentGateway: {
+      type: String,
+      default: "", // "VNPAY"
+    },
+
+    paymentTxnRef: {
+      type: String,
+      default: "", // vnp_TxnRef
+      index: true,
+    },
+
+    paidAt: {
+      type: Date,
+      default: null,
+    },
+
+    paymentMeta: {
+      type: Object,
+      default: null, // lưu raw response VNPay
+    },
+
+    /* ================= PRICE ================= */
     subtotal: { type: Number, required: true },
     shippingFee: { type: Number, default: 0 },
     total: { type: Number, required: true },
 
+    /* ================= RECEIVER ================= */
     receiver: {
       name: { type: String, required: true },
       phoneNumber: { type: String, required: true },
@@ -83,6 +105,7 @@ const orderSchema = new mongoose.Schema(
       note: { type: String, default: "" },
     },
 
+    /* ================= TIMELINE ================= */
     cancelReason: { type: String, default: "" },
     cancelledAt: { type: Date, default: null },
 

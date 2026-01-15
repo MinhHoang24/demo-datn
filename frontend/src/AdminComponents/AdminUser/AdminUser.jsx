@@ -1,222 +1,113 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Button, Modal, Space, Table, message, Input } from "antd";
+import React, { useEffect, useState, useCallback } from "react";
+import { Button, Modal, Table, message, Input } from "antd";
 import {
   DeleteFilled,
   ExclamationCircleFilled,
   SearchOutlined,
 } from "@ant-design/icons";
-import Highlighter from "react-highlight-words";
 import apiService from "../../Api/Api";
 
 const { confirm } = Modal;
 
 const AdminUser = () => {
+  /* ================= TABLE STATE ================= */
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [searchText, setSearchText] = useState("");
-  const [searchedColumn, setSearchedColumn] = useState("");
-  const searchInput = useRef(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
 
-  // Helper check token
-  const ensureAuth = () => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      message.error("Bạn cần phải đăng nhập!");
-      return null;
-    }
-    return token;
-  };
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState(undefined);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const token = ensureAuth();
-        if (!token) return;
-
-        const response = await apiService.getAllUsers();
-        setUsers(response.data.users || []);
-      } catch (error) {
-        console.error(error);
-        const errorMsg =
-          error.response?.data?.message || "Không thể lấy dữ liệu người dùng";
-        message.error(errorMsg);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    confirm();
-    setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
-  };
-
-  const getColumnSearchProps = (dataIndex, title) => ({
-    filterDropdown: ({
-      setSelectedKeys,
-      selectedKeys,
-      confirm,
-      clearFilters,
-      close,
-    }) => (
-      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-        <Input
-          ref={searchInput}
-          placeholder={`Search by ${title}`}
-          value={selectedKeys[0]}
-          onChange={(e) =>
-            setSelectedKeys(e.target.value ? [e.target.value] : [])
-          }
-          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
-          style={{ marginBottom: 8, display: "block" }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Search
-          </Button>
-          <Button
-            onClick={() => {
-              clearFilters?.();
-              confirm();
-              setSearchText("");
-              setSearchedColumn(dataIndex);
-            }}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Reset
-          </Button>
-          <Button type="link" size="small" onClick={close}>
-            Close
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered) => (
-      <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
-    ),
-    onFilter: (value, record) => {
-      const field = record[dataIndex];
-      if (!field) return false;
-      return field.toString().toLowerCase().includes(value.toLowerCase());
-    },
-    filterDropdownProps: {
-      onOpenChange: (visible) => {
-        if (visible) {
-          setTimeout(() => searchInput.current?.select(), 100);
-        }
-      },
-    },
-    render: (text) =>
-      searchedColumn === dataIndex ? (
-        <Highlighter
-          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-          searchWords={[searchText]}
-          autoEscape
-          textToHighlight={text ? text.toString() : ""}
-        />
-      ) : (
-        text
-      ),
-  });
-
-  const deleteUser = async (record) => {
+  /* ================= FETCH DATA (BE) ================= */
+  const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
-      const token = ensureAuth();
-      if (!token) return;
+      const res = await apiService.getAllUsers({
+        page,
+        limit,
+        q: search || undefined,
+        sort,
+      });
 
-      await apiService.deleteUser(record._id);
-      setUsers((prev) => prev.filter((user) => user._id !== record._id));
-      message.success(`Đã xóa user: ${record._id}`);
+      setUsers(res.data.users || []);
+      setTotal(res.data.pagination?.total || 0);
     } catch (error) {
       console.error(error);
-      const errorMsg =
-        error.response?.data?.message ||
-        `Xóa user thất bại: ${record._id}`;
-      message.error(errorMsg);
+      message.error(
+        error.response?.data?.message || "Không thể lấy dữ liệu người dùng"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [page, limit, search, sort]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  /* ================= DELETE ================= */
+  const deleteUser = async (record) => {
+    try {
+      await apiService.deleteUser(record._id);
+      message.success(`Đã xóa user: ${record._id}`);
+      fetchData();
+    } catch (error) {
+      message.error(
+        error.response?.data?.message || "Xóa user thất bại"
+      );
     }
   };
 
   const showDeleteConfirm = (user) => {
     confirm({
-      title: `Xác nhận xóa người dùng ${user._id}!`,
+      title: `Xác nhận xóa người dùng`,
       icon: <ExclamationCircleFilled />,
-      content: `User name: ${user.userName}`,
+      content: `Email: ${user.email}`,
       onOk() {
         deleteUser(user);
       },
     });
   };
 
+  /* ================= TABLE COLUMNS ================= */
   const columns = [
     {
       title: "STT",
-      dataIndex: "stt",
-      key: "stt",
-      width: "5%",
+      render: (_, __, index) => (page - 1) * limit + index + 1,
+      width: 70,
     },
     {
       title: "ID",
       dataIndex: "_id",
-      key: "_id",
       ellipsis: true,
-      sorter: (a, b) => a._id.localeCompare(b._id),
-      sortDirections: ["descend", "ascend"],
-      width: "15%",
     },
     {
       title: "User name",
       dataIndex: "userName",
-      key: "userName",
-      ellipsis: true,
-      width: "20%",
-      ...getColumnSearchProps("userName", "User name"),
+      sorter: true,
     },
     {
       title: "Phone number",
       dataIndex: "phoneNumber",
-      key: "phoneNumber",
-      ellipsis: true,
-      width: "15%",
-      ...getColumnSearchProps("phoneNumber" , "Phone number"),
     },
     {
       title: "Email",
       dataIndex: "email",
-      key: "email",
-      ellipsis: true,
-      width: "20%",
-      ...getColumnSearchProps("email", "Email"),
+      sorter: true,
     },
     {
       title: "Địa chỉ",
       dataIndex: "diaChi",
-      key: "diaChi",
-      ellipsis: true,
-      width: "30%",
-      ...getColumnSearchProps("diaChi", "Địa chỉ"),
     },
     {
       title: "Actions",
-      key: "actions",
-      width: "10%",
+      width: 80,
       render: (_, record) => (
         <Button
-          style={{ transform: "scale(1.5,1.5)" }}
           type="text"
-          size="small"
-          shape="circle"
           danger
           icon={<DeleteFilled />}
           onClick={(e) => {
@@ -228,23 +119,47 @@ const AdminUser = () => {
     },
   ];
 
-  const dataSource = users.map((user, index) => ({
-    ...user,
-    key: user._id,
-    stt: index + 1,
-  }));
+  /* ================= TABLE CHANGE ================= */
+  const handleTableChange = (pagination, filters, sorter) => {
+    setPage(pagination.current);
+    setLimit(pagination.pageSize);
+
+    if (sorter?.order) {
+      const field = sorter.field;
+      const order = sorter.order === "ascend" ? "asc" : "desc";
+      setSort(`${field}_${order}`);
+    } else {
+      setSort(undefined);
+    }
+  };
 
   return (
     <div>
+      <div style={{ marginBottom: 16 }}>
+        <Input
+          allowClear
+          prefix={<SearchOutlined />}
+          placeholder="Tìm theo tên hoặc email"
+          style={{ width: 320 }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
+      </div>
+
       <Table
+        rowKey="_id"
         columns={columns}
+        dataSource={users}
         loading={loading}
-        dataSource={dataSource}
+        onChange={handleTableChange}
         pagination={{
-          pageSizeOptions: ["10", "15"],
+          current: page,
+          pageSize: limit,
+          total,
           showSizeChanger: true,
-          defaultPageSize: 10,
-          style: { marginBottom: "20px" },
+          pageSizeOptions: ["10", "15", "20"],
         }}
       />
     </div>

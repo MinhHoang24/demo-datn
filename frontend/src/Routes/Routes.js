@@ -12,6 +12,8 @@ import UserProfile from "../Pages/UserProfile/UserProfile";
 import OrderHistory from "../Pages/OrderHistory/OrderHistory";
 import Admin from "../Pages/AdminPage/AdminPage";
 import VerifyOtp from "../Pages/VerifyOtp/VerifyOtp";
+import PaymentSuccess from "../Pages/Payment/PaymentSuccess";
+import PaymentFail from "../Pages/Payment/PaymentFail";
 
 export const publicRoutes = [
   // ================= USER LAYOUT =================
@@ -51,6 +53,10 @@ export const publicRoutes = [
       // ===== USER FEATURES =====
       { path: "/cart", element: <Cart /> },
       { path: "/checkout", element: <Checkout /> },
+
+      { path: "/payment-success", element: <PaymentSuccess /> },
+      { path: "/payment-fail", element: <PaymentFail /> },
+
       { path: "/orders", element: <OrderHistory /> },
       { path: "/profile", element: <UserProfile /> },
 

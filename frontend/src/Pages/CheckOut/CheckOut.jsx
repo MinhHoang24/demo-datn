@@ -10,7 +10,7 @@ const formatPrice = (p) =>
   });
 
 const getProductImage = (item) => {
-  const product = item.productId || item.product || {};
+  const product = item.product || item.productId || {};
   if (item.color && product.variants?.length) {
     const variant = product.variants.find(
       (v) =>
@@ -205,7 +205,7 @@ export default function CheckoutPage() {
           <h2 className="font-semibold">Sản phẩm đã chọn</h2>
 
           {items.map((it, idx) => {
-            const product = it.productId || it.product || {};
+            const product = it.product || it.productId || {};
             const price =
               it.price || Number(product.price || 0);
             const image = getProductImage(it);

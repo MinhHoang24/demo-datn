@@ -62,13 +62,65 @@ const getAdminDashboard = (req, res) => {
 // =========================
 const manageUsers = async (req, res) => {
   try {
-    const users = await User.find({ role: { $ne: "admin" } });
-    console.log("Lấy thành công tất cả người dùng!");
-    res.json({ message: "Get All Users", users });
+    /* ================= QUERY PARAMS ================= */
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+    const skip = (page - 1) * limit;
+
+    const {
+      q,
+      sort = "created_desc",
+    } = req.query;
+
+    /* ================= FILTER ================= */
+    const filter = {
+      role: { $ne: "admin" },
+    };
+
+    // search by name or email
+    if (q) {
+      const keyword = q.trim();
+      filter.$or = [
+        { userName: { $regex: keyword, $options: "i" } },
+        { email: { $regex: keyword, $options: "i" } },
+        { phoneNumber: { $regex: keyword, $options: "i" } },
+      ];
+    }
+
+    /* ================= SORT ================= */
+    let sortQuery = { createdAt: -1 }; // default newest
+
+    if (sort === "name_asc") sortQuery = { name: 1 };
+    if (sort === "name_desc") sortQuery = { name: -1 };
+    if (sort === "email_asc") sortQuery = { email: 1 };
+    if (sort === "email_desc") sortQuery = { email: -1 };
+
+    /* ================= QUERY ================= */
+    const users = await User.find(filter)
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await User.countDocuments(filter);
+
+    /* ================= RESPONSE ================= */
+    return res.json({
+      message: "Get All Users",
+      users,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error managing users", error: error.message });
+    console.error("manageUsers error:", error);
+    return res.status(500).json({
+      message: "Error managing users",
+      error: error.message,
+    });
   }
 };
 
@@ -218,38 +270,111 @@ const changeAdminPassword = async (req, res) => {
 // Products (giữ nguyên)
 // =========================
 const manageProducts = async (req, res) => {
-  const products = await Product.find().lean();
+  try {
+    /* ================= QUERY PARAMS ================= */
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+    const skip = (page - 1) * limit;
 
-  const productIds = products.map((p) => p._id);
+    const {
+      q,
+      category,
+      sort = "created_desc",
+    } = req.query;
 
-  const ratings = await Comment.aggregate([
-    { $match: { productId: { $in: productIds } } },
-    {
-      $group: {
-        _id: "$productId",
-        rating: { $avg: "$rating" },
-        totalRatings: { $sum: 1 },
-      },
-    },
-  ]);
+    /* ================= FILTER (MONGO) ================= */
+    const filter = {};
 
-  const ratingMap = Object.fromEntries(
-    ratings.map((r) => [
-      r._id.toString(),
+    if (q) {
+      filter.name = { $regex: q, $options: "i" };
+    }
+
+    if (category) {
+      filter.category = category;
+    }
+
+    /* ================= SORT (MONGO SAFE) ================= */
+    let sortQuery = { createdAt: -1 };
+
+    if (sort === "name_asc") sortQuery = { name: 1 };
+    if (sort === "name_desc") sortQuery = { name: -1 };
+    if (sort === "price_asc") sortQuery = { price: 1 };
+    if (sort === "price_desc") sortQuery = { price: -1 };
+
+    /* ================= QUERY PRODUCTS ================= */
+    const products = await Product.find(filter)
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await Product.countDocuments(filter);
+
+    if (products.length === 0) {
+      return res.json({
+        products: [],
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: 0,
+        },
+      });
+    }
+
+    /* ================= RATING AGG ================= */
+    const productIds = products.map((p) => p._id);
+
+    const ratings = await Comment.aggregate([
+      { $match: { productId: { $in: productIds } } },
       {
-        rating: Number(r.rating.toFixed(1)),
-        totalRatings: r.totalRatings,
+        $group: {
+          _id: "$productId",
+          rating: { $avg: "$rating" },
+          totalRatings: { $sum: 1 },
+        },
       },
-    ])
-  );
+    ]);
 
-  const result = products.map((p) => ({
-    ...p,
-    rating: ratingMap[p._id]?.rating || 0,
-    totalRatings: ratingMap[p._id]?.totalRatings || 0,
-  }));
+    const ratingMap = Object.fromEntries(
+      ratings.map((r) => [
+        r._id.toString(),
+        {
+          rating: Number(r.rating.toFixed(1)),
+          totalRatings: r.totalRatings,
+        },
+      ])
+    );
 
-  res.json({ products: result });
+    /* ================= MERGE ================= */
+    let result = products.map((p) => ({
+      ...p,
+      rating: ratingMap[p._id]?.rating || 0,
+      totalRatings: ratingMap[p._id]?.totalRatings || 0,
+    }));
+
+    /* ================= SORT RATING (JS) ================= */
+    if (sort === "rating_desc") {
+      result.sort((a, b) => b.rating - a.rating);
+    }
+
+    /* ================= RESPONSE ================= */
+    return res.json({
+      products: result,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (err) {
+    console.error("manageProducts error:", err);
+    return res.status(500).json({
+      message: "Error fetching products",
+      error: err.message,
+    });
+  }
 };
 
 const createProduct = async (req, res) => {
@@ -378,14 +503,25 @@ function canTransition(from, to) {
 // GET /admin/order?status=&page=&limit=&q=&from=&to=
 const getAllOrders = async (req, res) => {
   try {
-    const { status, page = 1, limit = 20, q, from, to } = req.query;
+    /* ================= QUERY PARAMS ================= */
+    const {
+      status,
+      page = 1,
+      limit = 20,
+      q,
+      from,
+      to,
+      sort = "created_desc",
+    } = req.query;
 
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
     const skip = (pageNum - 1) * limitNum;
 
+    /* ================= FILTER ================= */
     const filter = {};
 
+    // filter status
     if (status) {
       const st = String(status);
       if (!Object.values(ORDER_STATUS).includes(st)) {
@@ -394,14 +530,17 @@ const getAllOrders = async (req, res) => {
       filter.status = st;
     }
 
+    // filter date range
     if (from || to) {
       filter.createdAt = {};
       if (from) filter.createdAt.$gte = new Date(from);
       if (to) filter.createdAt.$lte = new Date(to);
     }
 
+    // search buyer
     if (q && String(q).trim()) {
       const keyword = String(q).trim();
+
       const userIds = await User.find({
         $or: [
           { userName: { $regex: keyword, $options: "i" } },
@@ -410,13 +549,35 @@ const getAllOrders = async (req, res) => {
         ],
       }).distinct("_id");
 
-      filter.userId = { $in: userIds.length ? userIds : [null] };
+      // nếu không tìm thấy user nào → trả về rỗng
+      if (!userIds.length) {
+        return res.status(200).json({
+          orders: [],
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total: 0,
+            totalPages: 0,
+          },
+        });
+      }
+
+      filter.userId = { $in: userIds };
     }
 
+    /* ================= SORT ================= */
+    let sortQuery = { createdAt: -1 }; // default: newest
+
+    if (sort === "created_asc") sortQuery = { createdAt: 1 };
+    if (sort === "created_desc") sortQuery = { createdAt: -1 };
+    if (sort === "total_asc") sortQuery = { totalPrice: 1 };
+    if (sort === "total_desc") sortQuery = { totalPrice: -1 };
+
+    /* ================= QUERY ================= */
     const [total, orders] = await Promise.all([
       Order.countDocuments(filter),
       Order.find(filter)
-        .sort({ createdAt: -1 })
+        .sort(sortQuery)
         .skip(skip)
         .limit(limitNum)
         .populate("userId", "userName phoneNumber email diaChi")
@@ -424,6 +585,7 @@ const getAllOrders = async (req, res) => {
         .lean(),
     ]);
 
+    /* ================= RESPONSE ================= */
     return res.status(200).json({
       orders,
       pagination: {

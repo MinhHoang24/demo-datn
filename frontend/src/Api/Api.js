@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// export const base_url = "http://localhost:5000";
-export const base_url = "https://demo-datn.onrender.com";
+export const base_url = "http://localhost:5000";
+// export const base_url = "https://demo-datn.onrender.com";
 axios.defaults.withCredentials = true;
 
 const apiInstance = axios.create({
@@ -45,7 +45,7 @@ const apiService = {
     apiInstance.put("/change-password", { currentPassword, newPassword }),
 
   // Product APIs
-  getProducts: () => apiInstance.get("/product"),
+  getProducts: (params) => apiInstance.get("/product", { params }),
   getProductById: (productId) => apiInstance.get(`/product/${productId}`),
   getRelatedProducts: (productId) =>
     apiInstance.get(`/product/${productId}/related`),
@@ -79,7 +79,8 @@ const apiService = {
 
   clearCart: () => apiInstance.delete("/cart/clear"),
 
-  getMyOrders: () => apiInstance.get("/orders/my"),
+  getMyOrders: (params) =>
+    apiInstance.get("/orders/my", { params }),
 
   getMyOrderDetail: (orderId) => apiInstance.get(`/orders/${orderId}`),
 
@@ -112,10 +113,12 @@ const apiService = {
   changeAdminPassword: (passwordData) =>
     apiInstance.patch("/admin/change-password", passwordData),
 
-  getAllUsers: () => apiInstance.get("/admin/users"),
+  getAllUsers: (params) =>
+    apiInstance.get("/admin/users", { params }),
   deleteUser: (userId) => apiInstance.delete(`/admin/users/${userId}`),
 
-  getAllProducts: () => apiInstance.get("/admin/products"),
+  getAllProducts: (params) =>
+    apiInstance.get("/admin/products", { params }),
   createProduct: (productData) => apiInstance.post("/admin/products", productData),
   deleteProduct: (productId) => apiInstance.delete(`/admin/products/${productId}`),
   updateProduct: (productId, productData) =>

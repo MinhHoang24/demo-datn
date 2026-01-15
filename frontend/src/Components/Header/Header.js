@@ -4,7 +4,6 @@ import Search from "../Search/Search";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBagShopping,
-  faCircleUser,
   faList,
   faTruckField,
   faBell,
@@ -16,14 +15,7 @@ import HeadlessTippy from "@tippyjs/react/headless";
 import MenuBar from "../MenuBar/MenuBar";
 import { AuthContext } from "../../Contexts/AuthContext";
 import apiService from "../../Api/Api";
-import { io } from "socket.io-client";
-
-/* =========================
-   SOCKET
-========================= */
-const socket = io("http://localhost:5000", {
-  autoConnect: false,
-});
+import { socket } from "../../socket";
 
 export default function Header() {
   const navigate = useNavigate();

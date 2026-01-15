@@ -4,8 +4,7 @@ const Product = require("../models/productModel");
 const Cart = require("../models/cartModel");
 const User = require("../models/userModel");
 
-const { Order, ORDER_STATUS, PAYMENT_METHOD } = require("../models/orderModel");
-const { Notification } = require("../models/notificationModel");
+const { Order, ORDER_STATUS, PAYMENT_METHOD, PAYMENT_STATUS } = require("../models/orderModel");
 const {
   notifyOrderCancelledByAdmin,
   notifyOrderCancelledByUser
@@ -47,8 +46,32 @@ function calcUnitPrice(product, variantColor) {
 const getMyOrders = async (req, res) => {
   try {
     const userId = req.userId;
-    const orders = await Order.find({ userId }).sort({ createdAt: -1 }).lean();
-    return res.json({ orders });
+
+    /* ================= QUERY PARAMS ================= */
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 10));
+    const skip = (page - 1) * limit;
+
+    /* ================= QUERY ================= */
+    const [orders, total] = await Promise.all([
+      Order.find({ userId })
+        .sort({ createdAt: -1 }) // mới nhất trước
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Order.countDocuments({ userId }),
+    ]);
+
+    /* ================= RESPONSE ================= */
+    return res.json({
+      orders,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     console.error("getMyOrders error:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -494,7 +517,6 @@ const checkoutBuyNowCOD = async (req, res) => {
     session.endSession();
   }
 };
-
 module.exports = {
   // user
   getMyOrders,
