@@ -682,6 +682,44 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// DELETE /admin/orders/:orderId
+// Chỉ cho phép xóa khi order đã CANCELLED
+const deleteCancelledOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ message: "orderId không hợp lệ" });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order không tồn tại" });
+    }
+
+    // ❌ chỉ cho xóa khi đã hủy
+    if (order.status !== ORDER_STATUS.CANCELLED) {
+      return res.status(400).json({
+        message: "Chỉ được xóa đơn hàng khi trạng thái là ĐÃ HỦY",
+      });
+    }
+
+    await Order.deleteOne({ _id: orderId });
+
+    return res.status(200).json({
+      message: "Đã xóa đơn hàng đã hủy thành công",
+      orderId,
+    });
+  } catch (error) {
+    console.error("deleteCancelledOrder error:", error);
+    return res.status(500).json({
+      message: "Lỗi server khi xóa đơn hàng",
+      error: error.message,
+    });
+  }
+};
+
+
 module.exports = {
   // dashboard
   getAdminDashboard,
@@ -705,6 +743,7 @@ module.exports = {
   getAllOrders,
   getOrderDetail,
   updateOrderStatus,
+  deleteCancelledOrder,
 
   // upload
   uploadImage,

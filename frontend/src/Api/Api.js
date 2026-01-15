@@ -155,6 +155,12 @@ const apiService = {
 
   resetPassword: (token, data) =>
     apiInstance.post(`/reset-password/${token}`, data),
+
+  deleteAdminOrder: (orderId) =>
+    apiInstance.delete(`/admin/orders/${orderId}`),
+
+  updateMyComment: (commentId, data) =>
+    apiInstance.put(`/comments/${commentId}`, data),
 };
 
 export default apiService;

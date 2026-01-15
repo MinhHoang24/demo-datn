@@ -28,6 +28,7 @@ const {
 
   // upload
   uploadImage,
+  deleteCancelledOrder
 } = require("../controllers/adminController");
 
 // ✅ admin cancel order nằm ở orderController (hoàn kho + noti user + noti admin + emit)
@@ -83,5 +84,12 @@ router.patch("/orders/:orderId/cancel", protect, isAdmin, cancelOrderByAdmin);
 // Upload image
 // =======================
 router.post("/upload/upload-image", protect, isAdmin, uploadImage);
+
+router.delete(
+  "/orders/:orderId",
+  protect,
+  isAdmin,
+  deleteCancelledOrder
+);
 
 module.exports = router;

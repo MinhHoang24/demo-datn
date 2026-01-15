@@ -61,6 +61,7 @@ export default function LoginPage() {
 
       if (res.data.success) {
         localStorage.setItem("authToken", res.data.token);
+        localStorage.setItem("userID", res.data.userID);
         localStorage.setItem("role", res.data.role);
 
         navigate(res.data.role === "admin" ? "/admin" : "/");

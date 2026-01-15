@@ -92,7 +92,7 @@ const getComments = async (req, res) => {
 
     const comments = await Comment.find({ productId })
       .sort({ createdAt: -1 })
-      .populate("userId", "userName email") // ✅ đúng field theo userModel của bạn
+      .populate("userId", "userName") // ✅ đúng field theo userModel của bạn
       .lean();
 
     // Bạn có thể return [] thay vì 404 nếu muốn FE dễ xử lý hơn.
@@ -103,4 +103,66 @@ const getComments = async (req, res) => {
   }
 };
 
-module.exports = { addComment, getComments };
+/**
+ * PUT /comments/:commentId
+ * Body: { text, rating }
+ * Chỉ cho phép user sửa comment của CHÍNH MÌNH
+ */
+const updateMyComment = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { commentId } = req.params;
+    const { text, rating } = req.body || {};
+
+    if (!mongoose.Types.ObjectId.isValid(commentId)) {
+      return res.status(400).json({ message: "commentId không hợp lệ" });
+    }
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment không tồn tại" });
+    }
+
+    // ❌ Không cho sửa comment người khác
+    if (String(comment.userId) !== String(userId)) {
+      return res.status(403).json({
+        message: "Bạn không có quyền chỉnh sửa đánh giá này",
+      });
+    }
+
+    // Validate text
+    if (text !== undefined) {
+      const textFinal = String(text).trim();
+      if (textFinal.length < 15) {
+        return res.status(400).json({
+          message: "Nội dung đánh giá tối thiểu 15 ký tự",
+        });
+      }
+      comment.text = textFinal;
+    }
+
+    // Validate rating
+    if (rating !== undefined) {
+      const ratingNum = Number(rating);
+      if (!Number.isFinite(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+        return res.status(400).json({
+          message: "rating phải nằm trong khoảng 1-5",
+        });
+      }
+      comment.rating = ratingNum;
+    }
+
+    await comment.save();
+
+    return res.status(200).json({
+      message: "Cập nhật đánh giá thành công",
+      comment,
+    });
+  } catch (err) {
+    console.error("updateMyComment error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+module.exports = { addComment, getComments, updateMyComment };

@@ -7,6 +7,7 @@ import {
   ORDER_STATUS_COLOR,
 } from "../../Constants/orderStatus";
 import AdminOrderDetail from "./OderDetails";
+import { DeleteOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
 
@@ -34,6 +35,37 @@ export default function AdminOrder() {
 
   const [openDetail, setOpenDetail] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+
+  const handleDeleteOrder = (order) => {
+    Modal.confirm({
+      title: "Xác nhận xóa đơn hàng",
+      content: (
+        <>
+          <p>
+            Bạn có chắc chắn muốn xóa đơn hàng{" "}
+            <b>{order._id}</b> không?
+          </p>
+          <p style={{ color: "red" }}>
+            Hành động này không thể hoàn tác.
+          </p>
+        </>
+      ),
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      async onOk() {
+        try {
+          await apiService.deleteAdminOrder(order._id);
+          message.success("Đã xóa đơn hàng đã hủy");
+          fetchOrders(); // reload
+        } catch (err) {
+          message.error(
+            err?.response?.data?.message || "Không thể xóa đơn hàng"
+          );
+        }
+      },
+    });
+  };
 
   /* ================= FETCH (BE) ================= */
   const fetchOrders = useCallback(async () => {
@@ -100,6 +132,29 @@ export default function AdminOrder() {
         return "—";
       },
     },
+    {
+      title: "Hành động",
+      key: "action",
+      align: "center",
+      render: (_, record) => {
+        const canDelete = record.status === "CANCELLED";
+
+        return (
+          <DeleteOutlined
+            style={{
+              fontSize: 18,
+              color: canDelete ? "#ff4d4f" : "#ccc",
+              cursor: canDelete ? "pointer" : "not-allowed",
+            }}
+            onClick={(e) => {
+              e.stopPropagation(); // ❗ không mở detail modal
+              if (!canDelete) return;
+              handleDeleteOrder(record);
+            }}
+          />
+        );
+      },
+    }
   ];
 
   /* ================= TABLE CHANGE ================= */
