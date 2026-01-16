@@ -1,9 +1,8 @@
 import { io } from "socket.io-client";
 
-export const socket = io("http://localhost:5000", {
-  autoConnect: false,
-});
+const SOCKET_URL = process.env.REACT_APP_API_BASE_URL;
 
-// export const socket = io("https://demo-datn.onrender.com", {
-//   autoConnect: false,
-// });
+export const socket = io(SOCKET_URL, {
+  autoConnect: false,
+  withCredentials: true,
+});
