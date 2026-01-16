@@ -177,6 +177,7 @@ exports.loginUser = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: 'Vui lòng nhập mã OTP để xác thực tài khoản',
+        email: user.email,
       });
     }
 

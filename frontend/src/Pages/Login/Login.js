@@ -9,11 +9,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const { login } = useContext(AuthContext);
-  const [needVerify, setNeedVerify] = useState(false);
-  const [resendMessage, setResendMessage] = useState("");
   const navigate = useNavigate();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -25,17 +22,6 @@ export default function LoginPage() {
   const validateEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  const handleResendVerify = async () => {
-    try {
-      setIsResending(true);
-      await apiService.resendOtp({ email: identifier });
-      setResendMessage("Đã gửi lại mã OTP. Vui lòng kiểm tra email.");
-    } catch {
-      setResendMessage("Không thể gửi lại OTP. Vui lòng thử lại.");
-    } finally {
-      setIsResending(false);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -71,9 +57,15 @@ export default function LoginPage() {
         const message = error?.response?.data?.message;
 
         if (status === 403) {
-            setNeedVerify(true);
-            navigate(`/verify-otp?email=${encodeURIComponent(identifier)}`);
+          const emailFromBE = error?.response?.data?.email;
+          if (!emailFromBE) {
+            setErrors({
+              apiError: "Không tìm thấy email xác thực. Vui lòng đăng nhập bằng email.",
+            });
             return;
+          }
+          navigate(`/verify-otp?email=${encodeURIComponent(emailFromBE)}`);
+          return;
         }
 
         // ✅ map lỗi theo message từ BE
@@ -170,25 +162,6 @@ export default function LoginPage() {
             Quên mật khẩu?
           </Link>
         </p>
-
-        {/* VERIFY */}
-        {needVerify && (
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Tài khoản chưa được xác thực.
-            </p>
-            <button
-              onClick={!isResending ? handleResendVerify : undefined}
-              disabled={isResending}
-              className="mt-2 text-blue-600 underline disabled:text-gray-400"
-            >
-              {isResending ? "Đang gửi..." : "Gửi lại mã OTP?"}
-            </button>
-            {resendMessage && (
-              <p className="text-sm mt-2">{resendMessage}</p>
-            )}
-          </div>
-        )}
 
         {errors.apiError && (
           <p className="text-red-500 text-sm text-center mt-4">

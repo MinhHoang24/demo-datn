@@ -7,10 +7,30 @@ export default function VerifyOtp() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const email = params.get("email");
+  const [resending, setResending] = useState(false);
+  const [message, setMessage] = useState("");
 
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleResendOtp = async () => {
+    if (!email) {
+      setError("Không tìm thấy email để xác thực. Vui lòng đăng nhập lại.");
+      return;
+    }
+
+    try {
+      setResending(true);
+      setMessage("");
+      await apiService.resendOtp({ email });
+      setMessage("✅ Đã gửi lại mã OTP. Vui lòng kiểm tra email.");
+    } catch {
+      setMessage("❌ Không thể gửi lại OTP. Vui lòng thử lại.");
+    } finally {
+      setResending(false);
+    }
+  };
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
@@ -57,6 +77,20 @@ export default function VerifyOtp() {
           placeholder="------"
           className="mt-6 w-full text-center text-2xl tracking-[0.5em] font-semibold border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#7747ff]/40"
         />
+
+        <div className="mt-4 text-sm text-center">
+          <button
+            onClick={!resending ? handleResendOtp : undefined}
+            disabled={resending}
+            className="text-blue-600 underline disabled:text-gray-400"
+          >
+            {resending ? "Đang gửi lại mã OTP..." : "Gửi lại mã OTP"}
+          </button>
+
+          {message && (
+            <p className="mt-2 text-sm text-gray-700">{message}</p>
+          )}
+        </div>
 
         {/* ERROR */}
         {error && (
