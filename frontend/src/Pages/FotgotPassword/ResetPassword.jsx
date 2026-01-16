@@ -10,6 +10,10 @@ export default function ResetPassword() {
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -22,42 +26,55 @@ export default function ResetPassword() {
     }
   };
 
-  // ✅ auto redirect khi thành công
+  // auto redirect
   useEffect(() => {
     if (!isSuccess) return;
-
-    const timer = setTimeout(() => {
-      navigate("/login");
-    }, 2000); // 2 giây
-
+    const timer = setTimeout(() => navigate("/login"), 2000);
     return () => clearTimeout(timer);
   }, [isSuccess, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f4f6fc] px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-xl shadow w-full max-w-md"
-      >
-        <h2 className="text-xl font-bold mb-4">Đặt lại mật khẩu</h2>
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl px-6 py-8 sm:px-10 sm:py-12">
+        {/* TITLE */}
+        <h1 className="text-center text-2xl sm:text-3xl font-bold text-[#1e0e4b]">
+          Đặt lại mật khẩu{" "}
+          <span className="text-[#7747ff]">MH SHOP</span>
+        </h1>
+        <p className="text-center text-gray-600 mt-2 mb-8">
+          Nhập mật khẩu mới cho tài khoản của bạn
+        </p>
 
-        <input
-          type="password"
-          placeholder="Mật khẩu mới"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border px-4 py-2 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-        />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mật khẩu mới
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-lg border px-4 py-3 text-base
+                focus:border-[#7747ff] focus:ring-2 focus:ring-[#7747ff]/30 outline-none"
+              placeholder="Nhập mật khẩu mới"
+              required
+            />
+          </div>
 
-        <button
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
-        >
-          Xác nhận
-        </button>
+          <button
+            type="submit"
+            className="w-full rounded-lg py-3 text-lg font-semibold text-white
+              bg-gradient-to-r from-[#55d2fc] to-[#1e47c1]
+              hover:from-[#251ca2] hover:to-[#ac68ff]
+              transition"
+          >
+            Xác nhận
+          </button>
+        </form>
 
         {message && (
           <p
-            className={`text-sm mt-3 ${
+            className={`text-sm text-center mt-4 ${
               isSuccess ? "text-green-600" : "text-red-500"
             }`}
           >
@@ -66,11 +83,11 @@ export default function ResetPassword() {
         )}
 
         {isSuccess && (
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-center text-gray-500 mt-1">
             Đang chuyển về trang đăng nhập...
           </p>
         )}
-      </form>
+      </div>
     </div>
   );
 }

@@ -299,7 +299,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* PAYMENT */}
-        <div className="bg-white border rounded-xl p-4 space-y-3">
+        <div className="bg-white border flex flex-col rounded-xl p-4 space-y-3">
           <h2 className="font-semibold">Phương thức thanh toán</h2>
 
           <button

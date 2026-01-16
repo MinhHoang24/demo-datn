@@ -126,7 +126,7 @@ const AddProduct = ({ setModalChild, handleRefresh }) => {
   };
 
   return (
-    <div className="w-[70vw] h-[80vh] p-5 overflow-y-auto">
+    <div style={{ width: '80vw', margin: "0 auto" }}>
       <h2 className="text-center mb-5">Thêm Sản Phẩm</h2>
 
       {/* PRODUCT INFO */}

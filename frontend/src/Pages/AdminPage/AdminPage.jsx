@@ -282,7 +282,7 @@ const Admin = () => {
         <div className={styles.content}>
           <div
             style={{
-              height: "calc(100vh - 120px - 40px)",
+              height: "calc(100vh - 120px)",
               overflowY: "auto",
             }}
           >

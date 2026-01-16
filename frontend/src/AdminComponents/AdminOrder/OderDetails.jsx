@@ -129,7 +129,7 @@ export default function AdminOrderDetail({ orderId, onUpdated }) {
   ];
 
   return (
-    <>
+    <div>
       <h2>Chi tiết đơn hàng</h2>
 
       <p><b>Mã đơn:</b> {order._id}</p>
@@ -175,6 +175,6 @@ export default function AdminOrderDetail({ orderId, onUpdated }) {
         Xác nhận chuyển trạng thái sang{" "}
         <b>{ORDER_STATUS_LABEL[nextStatus]}</b>?
       </Modal>
-    </>
+    </div>
   );
 }

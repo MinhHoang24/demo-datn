@@ -113,7 +113,7 @@ const EditProduct = ({ product, setModalChild, handleRefresh }) => {
 
   /* ================= RENDER ================= */
   return (
-    <div style={{ width: 1200 }}>
+    <div style={{ width: '80vw', margin: "0 auto" }}>
       <h2 style={{ textAlign: "center", marginBottom: 10 }}>
         Chỉnh sửa sản phẩm
       </h2>

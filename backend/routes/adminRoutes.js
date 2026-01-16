@@ -28,7 +28,8 @@ const {
 
   // upload
   uploadImage,
-  deleteCancelledOrder
+  deleteCancelledOrder,
+  getTotalRevenue
 } = require("../controllers/adminController");
 
 // ✅ admin cancel order nằm ở orderController (hoàn kho + noti user + noti admin + emit)
@@ -91,5 +92,7 @@ router.delete(
   isAdmin,
   deleteCancelledOrder
 );
+
+router.get("/revenue/total", protect, isAdmin, getTotalRevenue);
 
 module.exports = router;

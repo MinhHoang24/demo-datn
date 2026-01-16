@@ -55,7 +55,7 @@ const ProductDetails = ({ products, setModalChild, handleRefresh }) => {
   }
 
   return (
-    <div style={{ width: 1000 }}>
+    <div style={{ width: '60vw', margin: "0 auto" }}>
       <Row gutter={16}>
         <Col flex="0 1 400px">
           <Image

@@ -10,13 +10,12 @@ const cloudinary = require("../config/cloudinaryConfig");
 const { v4: uuidv4 } = require("uuid");
 const fs = require("fs");
 
-const { Notification } = require("../models/notificationModel");
 const {
   notifyOrderStatusUpdated
 } = require("../services/notificationService");
 
 // Orders
-const { Order, ORDER_STATUS } = require("../models/orderModel");
+const { Order, ORDER_STATUS, PAYMENT_METHOD, PAYMENT_STATUS } = require("../models/orderModel");
 
 // =========================
 // Upload image (giữ nguyên)
@@ -719,6 +718,50 @@ const deleteCancelledOrder = async (req, res) => {
   }
 };
 
+// =========================
+// Revenue (Admin)
+// =========================
+const getTotalRevenue = async (req, res) => {
+  try {
+    const result = await Order.aggregate([
+      {
+        $match: {
+          $or: [
+            // COD: chỉ tính khi đã giao
+            {
+              paymentMethod: PAYMENT_METHOD.COD,
+              status: ORDER_STATUS.DELIVERED,
+            },
+            // QR (VNPay): chỉ cần thanh toán thành công
+            {
+              paymentMethod: PAYMENT_METHOD.QR,
+              paymentStatus: PAYMENT_STATUS.PAID,
+            },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$total" },
+          totalOrders: { $sum: 1 },
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      totalRevenue: result[0]?.totalRevenue || 0,
+      totalOrders: result[0]?.totalOrders || 0,
+    });
+  } catch (error) {
+    console.error("getTotalRevenue error:", error);
+    return res.status(500).json({
+      message: "Lỗi khi tính tổng doanh thu",
+      error: error.message,
+    });
+  }
+};
+
 
 module.exports = {
   // dashboard
@@ -747,4 +790,5 @@ module.exports = {
 
   // upload
   uploadImage,
+  getTotalRevenue
 };
