@@ -23,27 +23,34 @@ const { Order, ORDER_STATUS, PAYMENT_METHOD, PAYMENT_STATUS } = require("../mode
 const uploadImage = (req, res) => {
   upload.single("file")(req, res, async (err) => {
     if (err) {
-      console.error("Lỗi khi upload ảnh:", err);
-      return res
-        .status(500)
-        .json({ message: "Lỗi khi upload ảnh", error: err.message });
+      return res.status(500).json({
+        message: "Lỗi khi upload ảnh",
+        error: err.message,
+      });
     }
+
     if (!req.file) {
       return res.status(400).json({ message: "Không có file được upload" });
     }
 
     try {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "product_images",
-        public_id: uuidv4(),
+      const result = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "product_images",
+            public_id: uuidv4(),
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+
+        stream.end(req.file.buffer);
       });
 
-      fs.unlinkSync(req.file.path);
-
-      const imageUrl = result.secure_url;
-      res.status(200).json({ url: imageUrl });
+      res.status(200).json({ url: result.secure_url });
     } catch (error) {
-      console.error("Lỗi khi upload ảnh lên Cloudinary:", error);
       res.status(500).json({
         message: "Lỗi khi upload ảnh lên Cloudinary",
         error: error.message,
