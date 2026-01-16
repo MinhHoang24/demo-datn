@@ -1,17 +1,19 @@
-const multer = require('multer');
-const path = require('path');
+const multer = require("multer");
 
-// Cấu hình Multer để lưu ảnh vào thư mục 'uploads'
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Định nghĩa thư mục lưu trữ (nên tạo thư mục 'uploads' trước khi sử dụng)
+const storage = multer.memoryStorage();
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
   },
-  filename: (req, file, cb) => {
-    // Tạo tên file duy nhất bằng cách kết hợp thời gian hiện tại và tên file gốc
-    cb(null, Date.now() + '-' + file.originalname); 
-  }
+  fileFilter: (req, file, cb) => {
+    // Chỉ cho phép upload ảnh
+    if (!file.mimetype.startsWith("image/")) {
+      return cb(new Error("Chỉ cho phép upload file ảnh"), false);
+    }
+    cb(null, true);
+  },
 });
-
-const upload = multer({ storage });  // Middleware multer cho phép tải lên 1 tệp
 
 module.exports = upload;
