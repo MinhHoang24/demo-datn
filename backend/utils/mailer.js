@@ -1,16 +1,21 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
+// Khởi tạo Resend với API key
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-module.exports = transporter;
+/**
+ * Gửi email qua Resend
+ * @param {string} to - email người nhận
+ * @param {string} subject - tiêu đề
+ * @param {string} html - nội dung HTML
+ */
+module.exports = async function sendMail({ to, subject, html }) {
+  const result = await resend.emails.send({
+    from: "MH Shop <onboarding@resend.dev>", // ⚠️ BẮT BUỘC khi chưa verify domain
+    to: [to], // ⚠️ BẮT BUỘC là array
+    subject,
+    html,
+  });
+
+  return result;
+};
