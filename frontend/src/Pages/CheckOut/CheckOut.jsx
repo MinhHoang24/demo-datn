@@ -3,6 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import apiService from "../../Api/Api";
 import Toast from "../../Components/Toast/Toast";
 
+/* =========================
+   UTILS
+========================= */
 const formatPrice = (p) =>
   Number(p || 0).toLocaleString("vi-VN", {
     style: "currency",
@@ -47,6 +50,15 @@ export default function CheckoutPage() {
   const [loadingUser, setLoadingUser] = useState(true);
 
   /* =========================
+     RECEIVER (LOCAL)
+  ========================= */
+  const [receiver, setReceiver] = useState({
+    name: "",
+    phoneNumber: "",
+    address: "",
+  });
+
+  /* =========================
      PAYMENT
   ========================= */
   const [paymentMethod, setPaymentMethod] = useState("cod");
@@ -84,6 +96,19 @@ export default function CheckoutPage() {
   }, [navigate]);
 
   /* =========================
+     SYNC USER → RECEIVER (1 lần)
+  ========================= */
+  useEffect(() => {
+    if (user) {
+      setReceiver({
+        name: user.userName || "",
+        phoneNumber: user.phoneNumber || "",
+        address: user.diaChi || "",
+      });
+    }
+  }, [user]);
+
+  /* =========================
      TOTAL
   ========================= */
   const totalPrice = useMemo(() => {
@@ -98,29 +123,26 @@ export default function CheckoutPage() {
   /* =========================
      VALIDATION
   ========================= */
-  const isUserInfoValid = useMemo(() => {
-    if (!user) return false;
-
+  const isReceiverValid = useMemo(() => {
     return (
-      typeof user.userName === "string" &&
-      user.userName.trim() &&
-      typeof user.phoneNumber === "string" &&
-      user.phoneNumber.trim() &&
-      typeof user.diaChi === "string" &&
-      user.diaChi.trim()
+      typeof receiver.name === "string" &&
+      receiver.name.trim() &&
+      typeof receiver.phoneNumber === "string" &&
+      receiver.phoneNumber.trim() &&
+      typeof receiver.address === "string" &&
+      receiver.address.trim()
     );
-  }, [user]);
+  }, [receiver]);
 
   /* =========================
      SUBMIT
   ========================= */
   const handleCheckout = async () => {
-    if (isSubmitting || !user) return;
+    if (isSubmitting) return;
 
-    if (!isUserInfoValid) {
+    if (!isReceiverValid) {
       setToast({
-        message:
-          "Vui lòng cập nhật đầy đủ thông tin nhận hàng trong Hồ sơ cá nhân",
+        message: "Vui lòng nhập đầy đủ thông tin người nhận",
         type: "error",
       });
       return;
@@ -129,14 +151,8 @@ export default function CheckoutPage() {
     try {
       setIsSubmitting(true);
 
-      const receiver = {
-        name: user.userName,
-        phoneNumber: user.phoneNumber,
-        address: user.diaChi,
-      };
-
       /* =========================
-        COD (GIỮ NGUYÊN)
+        COD
       ========================= */
       if (paymentMethod === "cod") {
         if (checkoutMode === "buy-now") {
@@ -164,7 +180,6 @@ export default function CheckoutPage() {
         let res;
 
         if (checkoutMode === "buy-now") {
-          // 👉 BUY NOW + QR: bắt buộc gửi items
           res = await apiService.createVNPayPayment({
             receiver,
             source: "buy-now",
@@ -175,7 +190,6 @@ export default function CheckoutPage() {
             })),
           });
         } else {
-          // 👉 CART + QR: BE tự lấy cart.items isSelected
           res = await apiService.createVNPayPayment({
             receiver,
             source: "cart",
@@ -187,9 +201,7 @@ export default function CheckoutPage() {
           throw new Error("Không tạo được link thanh toán VNPay");
         }
 
-        // 🚀 Redirect sang VNPay
         window.location.href = paymentUrl;
-        return;
       }
     } catch (err) {
       setToast({
@@ -238,10 +250,7 @@ export default function CheckoutPage() {
             const image = getProductImage(it);
 
             return (
-              <div
-                key={idx}
-                className="flex gap-4 items-center border-b pb-4"
-              >
+              <div key={idx} className="flex gap-4 items-center border-b pb-4">
                 <div className="w-20 h-20 rounded-lg bg-gray-100 overflow-hidden">
                   {image ? (
                     <img
@@ -278,22 +287,45 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {/* USER INFO */}
-        <div className="bg-white border rounded-xl p-4 space-y-3">
+        {/* RECEIVER */}
+        <div className="bg-white border rounded-xl p-4 space-y-4">
           <h2 className="font-semibold">Thông tin người nhận</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-500">Họ và tên</p>
-              <p className="font-medium">{user.userName}</p>
+              <label className="text-sm text-gray-500">Họ và tên</label>
+              <input
+                type="text"
+                value={receiver.name}
+                onChange={(e) =>
+                  setReceiver({ ...receiver, name: e.target.value })
+                }
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+              />
             </div>
+
             <div>
-              <p className="text-sm text-gray-500">Số điện thoại</p>
-              <p className="font-medium">{user.phoneNumber}</p>
+              <label className="text-sm text-gray-500">Số điện thoại</label>
+              <input
+                type="text"
+                value={receiver.phoneNumber}
+                onChange={(e) =>
+                  setReceiver({ ...receiver, phoneNumber: e.target.value })
+                }
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+              />
             </div>
+
             <div className="sm:col-span-2">
-              <p className="text-sm text-gray-500">Địa chỉ</p>
-              <p className="font-medium">{user.diaChi}</p>
+              <label className="text-sm text-gray-500">Địa chỉ</label>
+              <textarea
+                rows={2}
+                value={receiver.address}
+                onChange={(e) =>
+                  setReceiver({ ...receiver, address: e.target.value })
+                }
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+              />
             </div>
           </div>
         </div>
@@ -312,9 +344,10 @@ export default function CheckoutPage() {
           >
             Thanh toán khi nhận hàng (COD)
           </button>
+
           <button
             onClick={() => setPaymentMethod("qr")}
-            className={`p-4 rounded-xl border text-left mt-3 ${
+            className={`p-4 rounded-xl border text-left ${
               paymentMethod === "qr"
                 ? "border-green-600 bg-green-50 text-green-600"
                 : ""
@@ -325,10 +358,10 @@ export default function CheckoutPage() {
         </div>
 
         <button
-          disabled={!isUserInfoValid || isSubmitting}
+          disabled={!isReceiverValid || isSubmitting}
           onClick={handleCheckout}
           className="w-full py-4 rounded-xl bg-blue-600 text-white font-semibold
-                    hover:bg-blue-700 disabled:opacity-50"
+                     hover:bg-blue-700 disabled:opacity-50"
         >
           {isSubmitting ? "Đang đặt hàng..." : "Thanh toán"}
         </button>

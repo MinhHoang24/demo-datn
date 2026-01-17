@@ -93,6 +93,10 @@ function calcUnitPrice(product, color) {
   return base;
 }
 
+function getFEUrl() {
+  return process.env.FE_URL || "http://localhost:3000";
+}
+
 /* =========================================================
    1) CREATE PAYMENT (VNPay)
    ❌ KHÔNG tạo Order
@@ -310,7 +314,7 @@ const vnpayReturn = async (req, res) => {
     delete params.vnp_SecureHashType;
 
     if (secureHash !== signParams(params, process.env.VNP_HASH_SECRET)) {
-      return res.redirect("http://localhost:3000/payment-fail");
+      return res.redirect(`${getFEUrl()}/payment-fail`);
     }
 
     const txnRef = params.vnp_TxnRef;
@@ -331,8 +335,8 @@ const vnpayReturn = async (req, res) => {
       }
     }
 
-    const FE_SUCCESS = "http://localhost:3000/payment-success";
-    const FE_FAIL = "http://localhost:3000/payment-fail";
+    const FE_SUCCESS = `${getFEUrl()}/payment-success`;
+    const FE_FAIL = `${getFEUrl()}/payment-fail`;
 
     return res.redirect(
       params.vnp_ResponseCode === "00"

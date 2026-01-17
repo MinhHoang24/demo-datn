@@ -119,7 +119,7 @@ export default function Header() {
         {/* LOGO */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
           <img
-            src="https://d1csarkz8obe9u.cloudfront.net/posterpreviews/hi-tech-logo-green-design-template-d57e7fb993808c268150e0da8633654e_screen.jpg?ts=1584477855"
+            src="https://res.cloudinary.com/dcmowy3ou/image/upload/v1768648255/logo_momc8f.png"
             alt="Logo"
             className="h-11 hidden lg:block"
           />
