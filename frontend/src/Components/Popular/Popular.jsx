@@ -22,6 +22,7 @@ export default function Popular({ category }) {
         category,
         page,
         limit,
+        sort: "rating_desc"
       });
 
       setProducts(res.data.products || []);

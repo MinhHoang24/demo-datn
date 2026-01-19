@@ -30,143 +30,143 @@ const withVariantMeta = (product) => {
 };
 
 // Route to get all products
-  const getProducts = async (req, res) => {
-    try {
-      /* ================= PARSE QUERY ================= */
-      const page = Math.max(1, parseInt(req.query.page) || 1);
-      const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 8));
-      const skip = (page - 1) * limit;
+const getProducts = async (req, res) => {
+  try {
+    /* ================= PARSE QUERY ================= */
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 8));
+    const skip = (page - 1) * limit;
 
-      const {
-        q,
-        category,
-        brand,
-        minPrice,
-        maxPrice,
-        hot,
-        minRating,
-        sort = "newest",
-      } = req.query;
+    const {
+      q,
+      category,
+      brand,
+      minPrice,
+      maxPrice,
+      hot,
+      minRating,
+      sort = "rating_desc",
+    } = req.query;
 
-      /* ================= BASE FILTER (MONGO) ================= */
-      const filter = {};
+    /* ================= BASE FILTER (MONGO) ================= */
+    const filter = {};
 
-      // search
-      if (q) {
-        filter.$or = [
-          { name: { $regex: q, $options: "i" } },
-          { category: { $regex: q, $options: "i" } },
-          { "brand.name": { $regex: q, $options: "i" } },
-        ];
-      }
+    // search
+    if (q) {
+      filter.$or = [
+        { name: { $regex: q, $options: "i" } },
+        { category: { $regex: q, $options: "i" } },
+        { "brand.name": { $regex: q, $options: "i" } },
+      ];
+    }
 
-      if (category) filter.category = category;
-      if (brand) filter["brand.name"] = brand;
+    if (category) filter.category = category;
+    if (brand) filter["brand.name"] = brand;
 
-      // hot
-      if (hot === "true") {
-        filter["variants.sale"] = { $gt: 0 };
-      }
+    // hot
+    if (hot === "true") {
+      filter["variants.sale"] = { $gt: 0 };
+    }
 
-      /* ================= SORT (MONGO SAFE) ================= */
-      let sortQuery = { createdAt: -1 }; // newest
+    /* ================= SORT (MONGO SAFE) ================= */
+    let sortQuery = { createdAt: -1 }; // newest
 
-      if (sort === "price_asc") sortQuery = { price: 1 };
-      if (sort === "price_desc") sortQuery = { price: -1 };
+    if (sort === "price_asc") sortQuery = { price: 1 };
+    if (sort === "price_desc") sortQuery = { price: -1 };
 
-      /* ================= QUERY PRODUCTS ================= */
-      const products = await ProductModel.find(filter)
-        .sort(sortQuery)
-        .lean();
+    /* ================= QUERY PRODUCTS ================= */
+    const products = await ProductModel.find(filter)
+      .sort(sortQuery)
+      .lean();
 
-      if (products.length === 0) {
-        return res.json({
-          products: [],
-          pagination: {
-            page,
-            limit,
-            total: 0,
-            totalPages: 0,
-          },
-        });
-      }
-
-      /* ================= RATING AGGREGATION ================= */
-      const productIds = products.map((p) => p._id);
-
-      const ratingAgg = await Comment.aggregate([
-        { $match: { productId: { $in: productIds } } },
-        {
-          $group: {
-            _id: "$productId",
-            rating: { $avg: "$rating" },
-            totalRatings: { $sum: 1 },
-          },
-        },
-      ]);
-
-      const ratingMap = Object.fromEntries(
-        ratingAgg.map((r) => [
-          r._id.toString(),
-          {
-            rating: Number(r.rating.toFixed(1)),
-            totalRatings: r.totalRatings,
-          },
-        ])
-      );
-
-      /* ================= FORMAT + PRICE FILTER ================= */
-      let resultProducts = products
-        .map((p) => {
-          const meta = withVariantMeta(p);
-          const finalPrice = meta.price * (1 - meta.sale / 100);
-
-          // price range filter (after sale)
-          if (minPrice && finalPrice < Number(minPrice)) return null;
-          if (maxPrice && finalPrice > Number(maxPrice)) return null;
-
-          return {
-            ...meta,
-            rating: ratingMap[p._id]?.rating || 0,
-            totalRatings: ratingMap[p._id]?.totalRatings || 0,
-          };
-        })
-        .filter(Boolean);
-
-      /* ================= FILTER RATING (JS) ================= */
-      if (minRating) {
-        resultProducts = resultProducts.filter(
-          (p) => p.rating >= Number(minRating)
-        );
-      }
-
-      /* ================= SORT RATING (JS) ================= */
-      if (sort === "rating_desc") {
-        resultProducts.sort((a, b) => b.rating - a.rating);
-      }
-
-      /* ================= PAGINATION (AFTER FILTER) ================= */
-      const total = resultProducts.length;
-      const paginatedProducts = resultProducts.slice(skip, skip + limit);
-
-      /* ================= RESPONSE ================= */
+    if (products.length === 0) {
       return res.json({
-        products: paginatedProducts,
+        products: [],
         pagination: {
           page,
           limit,
-          total,
-          totalPages: Math.ceil(total / limit),
+          total: 0,
+          totalPages: 0,
         },
       });
-    } catch (err) {
-      console.error("getProducts error:", err);
-      return res.status(500).json({
-        message: "Error fetching products",
-        error: err.message,
-      });
     }
-  };
+
+    /* ================= RATING AGGREGATION ================= */
+    const productIds = products.map((p) => p._id);
+
+    const ratingAgg = await Comment.aggregate([
+      { $match: { productId: { $in: productIds } } },
+      {
+        $group: {
+          _id: "$productId",
+          rating: { $avg: "$rating" },
+          totalRatings: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const ratingMap = Object.fromEntries(
+      ratingAgg.map((r) => [
+        r._id.toString(),
+        {
+          rating: Number(r.rating.toFixed(1)),
+          totalRatings: r.totalRatings,
+        },
+      ])
+    );
+
+    /* ================= FORMAT + PRICE FILTER ================= */
+    let resultProducts = products
+      .map((p) => {
+        const meta = withVariantMeta(p);
+        const finalPrice = meta.price * (1 - meta.sale / 100);
+
+        // price range filter (after sale)
+        if (minPrice && finalPrice < Number(minPrice)) return null;
+        if (maxPrice && finalPrice > Number(maxPrice)) return null;
+
+        return {
+          ...meta,
+          rating: ratingMap[p._id]?.rating || 0,
+          totalRatings: ratingMap[p._id]?.totalRatings || 0,
+        };
+      })
+      .filter(Boolean);
+
+    /* ================= FILTER RATING (JS) ================= */
+    if (minRating) {
+      resultProducts = resultProducts.filter(
+        (p) => p.rating >= Number(minRating)
+      );
+    }
+
+    /* ================= SORT RATING (JS) ================= */
+    if (sort === "rating_desc") {
+      resultProducts.sort((a, b) => b.rating - a.rating);
+    }
+
+    /* ================= PAGINATION (AFTER FILTER) ================= */
+    const total = resultProducts.length;
+    const paginatedProducts = resultProducts.slice(skip, skip + limit);
+
+    /* ================= RESPONSE ================= */
+    return res.json({
+      products: paginatedProducts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (err) {
+    console.error("getProducts error:", err);
+    return res.status(500).json({
+      message: "Error fetching products",
+      error: err.message,
+    });
+  }
+};
 
 // get product by id
 const getProductById = async (req, res) => {

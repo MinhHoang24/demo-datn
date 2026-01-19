@@ -34,6 +34,7 @@ function Search() {
             q: searchValue,
             page: 1,
             limit: 8,
+            sort: "rating_desc"
         });
 
         setSearchResult(res.data.products || []);

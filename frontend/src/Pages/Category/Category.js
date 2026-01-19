@@ -25,7 +25,7 @@ function Category({ category }) {
   const [minPrice, setMinPrice] = useState();
   const [maxPrice, setMaxPrice] = useState();
   const [hot, setHot] = useState(false);
-  const [sort, setSort] = useState("newest");
+  const [sort, setSort] = useState("rating_desc");
   const [minRating, setMinRating] = useState();
 
   /* ================= FETCH ================= */
@@ -110,16 +110,6 @@ function Category({ category }) {
               setPage(1);
             }}
           />
-
-          <Checkbox
-            checked={hot}
-            onChange={(e) => {
-              setHot(e.target.checked);
-              setPage(1);
-            }}
-          >
-            🔥 Khuyến mãi HOT
-          </Checkbox>
         </div>
 
         <div className="flex flex-wrap gap-3 items-center">
