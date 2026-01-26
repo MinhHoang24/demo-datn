@@ -9,7 +9,7 @@ const sendResetPasswordEmail = require("../utils/sendResetPasswordEmail");
 // Xem hồ sơ người dùng
 exports.getProfile = async (req, res) => {
     try {
-        const userId = req.user.id; // ID người dùng từ token
+        const userId = req.userId; // ID người dùng từ token
         const user = await User.findById(userId).select('-password'); // Không trả về mật khẩu
 
         if (!user) {
@@ -26,7 +26,7 @@ exports.getProfile = async (req, res) => {
 // Chỉnh sửa thông tin cá nhân
 exports.updateProfile = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.userId;
         const { userName, diaChi, email } = req.body;
 
         const { error } = updateProfileSchema.validate(req.body);
@@ -74,7 +74,7 @@ exports.updateProfile = async (req, res) => {
 // Đổi mật khẩu
 exports.changePassword = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.userId;
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {

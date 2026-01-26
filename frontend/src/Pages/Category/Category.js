@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { Select, InputNumber, Checkbox } from "antd";
+import { Select, InputNumber } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronLeft,
@@ -116,7 +116,6 @@ function Category({ category }) {
           <span className="text-sm text-gray-600">Sắp xếp:</span>
 
           {[
-            { label: "Mới nhất", value: "newest" },
             { label: "Giá ↑", value: "price_asc" },
             { label: "Giá ↓", value: "price_desc" },
             { label: "Đánh giá cao", value: "rating" },
@@ -145,20 +144,6 @@ function Category({ category }) {
               {opt.label}
             </button>
           ))}
-
-          <Select
-            placeholder="Đánh giá"
-            allowClear
-            style={{ width: 160 }}
-            onChange={(v) => {
-              setMinRating(v);
-              setPage(1);
-            }}
-            options={[
-              { label: "⭐ 4+", value: 4 },
-              { label: "⭐ 3+", value: 3 },
-            ]}
-          />
         </div>
       </div>
 

@@ -99,32 +99,22 @@ export default function RegisterPage() {
         return true;
       }
 
-      // xử lý message linh hoạt
-      if (response.data.message?.includes("Số điện thoại")) {
-        setErrors((e) => ({
-          ...e,
-          phonenumber: response.data.message,
-        }));
-      } else if (response.data.message?.includes("Email")) {
-        setErrors((e) => ({
-          ...e,
-          email: response.data.message,
-        }));
-      } else {
-        setErrors((e) => ({
-          ...e,
-          apiError:
-            response.data.message ||
-            "Đã có lỗi xảy ra. Vui lòng thử lại sau.",
-        }));
-      }
-
       return false;
     } catch (error) {
-      console.error("Register error:", error);
-      setErrors({
-        apiError: "Đã có lỗi xảy ra. Vui lòng thử lại sau.",
-      });
+      if (error.response) {
+        const message = error.response.data?.message;
+
+        if (message?.includes("Email")) {
+          setErrors((e) => ({ ...e, email: message }));
+        } else if (message?.includes("Số điện thoại")) {
+          setErrors((e) => ({ ...e, phonenumber: message }));
+        } else {
+          setErrors({ apiError: message || "Có lỗi xảy ra" });
+        }
+      } else {
+        setErrors({ apiError: "Không kết nối được server" });
+      }
+
       return false;
     } finally {
       setIsSubmitting(false);

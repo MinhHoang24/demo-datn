@@ -10,7 +10,7 @@ const {
     forgotPassword,
     resetPassword
 } = require('../controllers/userController');
-const authMiddleware = require('../middlewares/userMiddleware');
+const { protect } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
@@ -21,13 +21,13 @@ router.post('/register', registerUser);
 router.post('/login', loginUser);
 
 // Xem hồ sơ người dùng
-router.get('/profile', authMiddleware, getProfile);
+router.get('/profile', protect, getProfile);
 
 // Chỉnh sửa thông tin cá nhân
-router.put('/profile', authMiddleware, updateProfile);
+router.put('/profile', protect, updateProfile);
 
 // Đổi mật khẩu
-router.put('/change-password', authMiddleware, changePassword);
+router.put('/change-password', protect, changePassword);
 
 router.post('/verify-otp', verifyOtp);
 router.post('/resend-otp', resendOtp);
