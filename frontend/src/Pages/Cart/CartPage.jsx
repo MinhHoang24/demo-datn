@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import apiService from "../../Api/Api";
 import Loader from "../../Components/Loader/Loader";
 import ConfirmModal from "../../Components/ConfirmModal/ConfirmModal";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { CartContext } from "../../Contexts/CartCountContext";
 
 const getVariantImage = (product, color) => {
   if (!product) return null;
@@ -27,6 +28,7 @@ const formatPrice = (p) =>
 
 export default function CartPage() {
   const navigate = useNavigate();
+  const { fetchCartCount } = useContext(CartContext);
   const [unauthorized, setUnauthorized] = useState(false);
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -147,6 +149,7 @@ export default function CartPage() {
           setBusyKey(`rm-${itemId}`);
           const res = await apiService.removeCartItem(itemId);
           setCart(res.data?.cart);
+          await fetchCartCount();
           closeConfirm();
         } catch (err) {
           alert(err?.response?.data?.message || "Xóa thất bại");
@@ -168,6 +171,7 @@ export default function CartPage() {
           setBusyKey("clear");
           const res = await apiService.clearCart();
           setCart(res.data?.cart);
+          await fetchCartCount();
           closeConfirm();
         } catch (err) {
           alert(err?.response?.data?.message || "Clear thất bại");

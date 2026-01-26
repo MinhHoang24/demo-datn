@@ -8,6 +8,7 @@ const {
   selectAllCartItems,
   removeCartItem,
   clearCart,
+  getCartCount
 } = require("../controllers/cartController");
 
 const router = express.Router();
@@ -22,5 +23,7 @@ router.patch("/select-all", protect, selectAllCartItems);
 
 router.delete("/items/:itemId", protect, removeCartItem);
 router.delete("/clear", protect, clearCart);
+
+router.get("/count", protect, getCartCount);
 
 module.exports = router;

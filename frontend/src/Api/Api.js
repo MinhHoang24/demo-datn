@@ -79,6 +79,8 @@ const apiService = {
 
   clearCart: () => apiInstance.delete("/cart/clear"),
 
+  getCartCount: () => apiInstance.get("/cart/count"),
+
   getMyOrders: (params) =>
     apiInstance.get("/orders/my", { params }),
 

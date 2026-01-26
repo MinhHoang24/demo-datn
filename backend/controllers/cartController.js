@@ -292,6 +292,27 @@ const clearCart = async (req, res) => {
   }
 };
 
+const getCartCount = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const cart = await Cart.findOne({ userId })
+      .select("items")
+      .lean();
+
+    return res.json({
+      success: true,
+      count: cart?.items?.length || 0,
+    });
+  } catch (error) {
+    console.error("getCartCount error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Không thể lấy số lượng item trong giỏ hàng",
+    });
+  }
+};
+
 module.exports = {
   getMyCart,
   addToCart,
@@ -300,4 +321,5 @@ module.exports = {
   selectAllCartItems,
   removeCartItem,
   clearCart,
+  getCartCount
 };

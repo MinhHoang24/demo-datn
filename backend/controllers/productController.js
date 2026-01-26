@@ -118,6 +118,12 @@ const getProducts = async (req, res) => {
     /* ================= FORMAT + PRICE FILTER ================= */
     let resultProducts = products
       .map((p) => {
+        // ✅ ẨN SẢN PHẨM HẾT HÀNG
+        const hasStock = (p.variants || []).some(
+          (v) => Number(v.quantity || 0) > 0
+        );
+        if (!hasStock) return null;
+
         const meta = withVariantMeta(p);
         const finalPrice = meta.price * (1 - meta.sale / 100);
 

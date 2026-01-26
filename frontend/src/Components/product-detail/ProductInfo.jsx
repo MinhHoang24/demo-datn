@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import ProductRating from "../ProductRating/ProductRating";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCartArrowDown } from "@fortawesome/free-solid-svg-icons";
 import Toast from "../Toast/Toast";
 import apiService from "../../Api/Api";
 import { useNavigate } from "react-router-dom";
+import { CartContext } from "../../Contexts/CartCountContext";
 
 export default function ProductInfo({ product, selectedVariantIndex, onChangeVariant }) {
   const navigate = useNavigate();
+  const { fetchCartCount } = useContext(CartContext);
   const variant = product.variants[selectedVariantIndex];
   const [quantity, setQuantity] = useState(1);
 
@@ -38,6 +40,7 @@ export default function ProductInfo({ product, selectedVariantIndex, onChangeVar
         color: variant.color,
         quantity,
       });
+      await fetchCartCount();
 
       setToastType("success");
       setToastMessage("✅ Đã thêm vào giỏ hàng!");
@@ -149,45 +152,59 @@ export default function ProductInfo({ product, selectedVariantIndex, onChangeVar
         <span className="text-sm text-gray-500">{variant.quantity} sản phẩm có sẵn</span>
       </div>
 
-      <div className="flex gap-4 pt-2">
-        <button
-          disabled={variant.quantity === 0}
-          onClick={() =>
-            navigate("/checkout", {
-              state: {
-                from: "buy-now",
-                items: [
-                  {
-                    product,
-                    productId: product._id,
-                    color: variant.color,
-                    quantity,
-                    price: finalPrice,
+      {/* ACTION BUTTONS */}
+      <div className="pt-2">
+        {variant.quantity === 0 ? (
+          /* ===== HẾT HÀNG ===== */
+          <button
+            disabled
+            className="w-full py-4 rounded-xl bg-gray-300 text-gray-500
+                      font-semibold cursor-not-allowed"
+          >
+            HẾT HÀNG
+          </button>
+        ) : (
+          /* ===== CÒN HÀNG ===== */
+          <div className="flex gap-4">
+            {/* MUA NGAY */}
+            <button
+              onClick={() =>
+                navigate("/checkout", {
+                  state: {
+                    from: "buy-now",
+                    items: [
+                      {
+                        product,
+                        productId: product._id,
+                        color: variant.color,
+                        quantity,
+                        price: finalPrice,
+                      },
+                    ],
                   },
-                ],
-              },
-            })
-          }
-          className={`flex-1 py-3 rounded-lg font-semibold transition
-            ${
-              variant.quantity === 0
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
-        >
-          {variant.quantity === 0 ? "HẾT HÀNG" : "MUA NGAY"}
-        </button>
+                })
+              }
+              className="flex-1 py-3 rounded-xl bg-blue-600 text-white
+                        font-semibold hover:bg-blue-700 transition"
+            >
+              MUA NGAY
+            </button>
 
-        <button
-          onClick={handleAddToCart}
-          disabled={isAdding}
-          className={`flex items-center gap-2 border border-blue-600 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition ${
-            isAdding ? "opacity-60 cursor-not-allowed" : ""
-          }`}
-        >
-          <FontAwesomeIcon icon={faCartArrowDown} />
-          {isAdding ? "Đang thêm..." : "Thêm vào giỏ hàng"}
-        </button>
+            {/* THÊM VÀO GIỎ */}
+            <button
+              onClick={handleAddToCart}
+              disabled={isAdding}
+              className={`flex items-center justify-center gap-2 px-6 py-3
+                rounded-xl border border-blue-600 text-blue-600 font-semibold
+                transition hover:bg-blue-50
+                ${isAdding ? "opacity-60 cursor-not-allowed" : ""}
+              `}
+            >
+              <FontAwesomeIcon icon={faCartArrowDown} />
+              {isAdding ? "Đang thêm..." : "Thêm vào giỏ"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

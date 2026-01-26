@@ -16,9 +16,11 @@ import MenuBar from "../MenuBar/MenuBar";
 import { AuthContext } from "../../Contexts/AuthContext";
 import apiService from "../../Api/Api";
 import { socket } from "../../socket";
+import { CartContext } from "../../Contexts/CartCountContext";
 
 export default function Header() {
   const navigate = useNavigate();
+  const { cartCount, loadingCount } = useContext(CartContext);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { isLoggedIn, user, logout } = useContext(AuthContext);
 
@@ -172,7 +174,20 @@ export default function Header() {
           to="/cart"
           className="flex items-center gap-2 text-white hover:scale-105 transition"
         >
-          <FontAwesomeIcon icon={faBagShopping} />
+          <span className="relative inline-flex">
+            <FontAwesomeIcon icon={faBagShopping} />
+
+            {!loadingCount && cartCount > 0 && (
+              <span
+                className="absolute -top-2 -right-2 min-w-[16px] h-[16px]
+                bg-red-500 text-white text-[10px] flex items-center justify-center
+                rounded-full px-1 leading-none"
+              >
+                {cartCount > 9 ? "9+" : cartCount}
+              </span>
+            )}
+          </span>
+
           <span className="hidden md:block">Giỏ hàng</span>
         </Link>
 
