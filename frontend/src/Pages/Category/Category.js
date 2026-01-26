@@ -6,6 +6,7 @@ import {
   faChevronLeft,
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
+import Loader from "../../Components/Loader/Loader";
 
 import Item from "../../Components/Item/Item";
 import Breadcrumbs from "../../Components/BreadCrumbs/BreadCrumbs";
@@ -13,6 +14,7 @@ import apiService from "../../Api/Api";
 
 function Category({ category }) {
   const { brandName } = useParams();
+  const [loading, setLoading] = useState(false);
 
   /* ================= STATE ================= */
   const [products, setProducts] = useState([]);
@@ -31,20 +33,30 @@ function Category({ category }) {
   /* ================= FETCH ================= */
   useEffect(() => {
     const fetchProducts = async () => {
-      const res = await apiService.getProducts({
-        category,
-        page,
-        limit,
-        brand,
-        minPrice,
-        maxPrice,
-        hot,
-        sort,
-        minRating,
-      });
+      try {
+        setLoading(true);
 
-      setProducts(res.data.products || []);
-      setTotal(res.data.pagination?.total || 0);
+        const res = await apiService.getProducts({
+          category,
+          page,
+          limit,
+          brand,
+          minPrice,
+          maxPrice,
+          hot,
+          sort,
+          minRating,
+        });
+
+        setProducts(res.data.products || []);
+        setTotal(res.data.pagination?.total || 0);
+      } catch (error) {
+        console.error("fetchProducts error:", error);
+        setProducts([]);
+        setTotal(0);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchProducts();
@@ -154,14 +166,16 @@ function Category({ category }) {
         </div>
       )}
 
-      {/* ===== SLIDE PRODUCTS ===== */}
-      {products.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <Loader size={48} />
+        </div>
+      ) : products.length === 0 ? (
         <div className="text-center text-gray-500 py-20">
           Không có sản phẩm phù hợp
         </div>
       ) : (
         <div className="relative overflow-hidden">
-          {/* PRODUCT GRID */}
           <div
             key={page}
             className="grid grid-cols-2 md:grid-cols-4 gap-6 transition-all duration-300"
@@ -171,23 +185,22 @@ function Category({ category }) {
             ))}
           </div>
 
-          {/* PREV */}
+          {/* PREV / NEXT */}
           {page > 1 && (
             <button
               onClick={() => setPage((p) => p - 1)}
               className="absolute left-0 top-1/2 -translate-y-1/2
-                         bg-white p-2 shadow rounded-full z-10"
+                        bg-white p-2 shadow rounded-full z-10"
             >
               <FontAwesomeIcon icon={faChevronLeft} />
             </button>
           )}
 
-          {/* NEXT */}
           {page < totalPages && (
             <button
               onClick={() => setPage((p) => p + 1)}
               className="absolute right-0 top-1/2 -translate-y-1/2
-                         bg-white p-2 shadow rounded-full z-10"
+                        bg-white p-2 shadow rounded-full z-10"
             >
               <FontAwesomeIcon icon={faChevronRight} />
             </button>

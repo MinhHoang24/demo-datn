@@ -1,6 +1,16 @@
 import React from 'react';
 import "./Footer.css";
-function Footer(props) {
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faFacebook,
+  faInstagram,
+} from "@fortawesome/free-brands-svg-icons";
+import {
+  faLocationDot,
+  faPhone,
+} from "@fortawesome/free-solid-svg-icons";
+
+function Footer() {
     return (
         <section id="footer">
             <div className="footer">
@@ -22,26 +32,60 @@ function Footer(props) {
                     </div>
                     <div className="footer-top-sp">
                         <h2>Always-on Support</h2>
-                        <p>Phone/Zalo: 0966907473</p>
-                        <p>Facebook: <a style={{ color: '#cce7ff', textDecoration: 'underline' }} href='https://www.facebook.com/littlemozart.mh'>Minh Hoang</a></p>
-                        <p>Instagram: <a style={{ color: '#cce7ff', textDecoration: 'underline' }} href='https://www.instagram.com/hmoang22'>hmoang22</a></p>
-                        <p>
-                            📍 Hà Nội, Việt Nam –{" "}
+
+                        <div className="contact-icons flex flex-col gap-2">
+                            {/* PHONE / ZALO */}
                             <a
-                                href="https://maps.app.goo.gl/99VpowniGSKrYRsC6"
+                                href="tel:0966907473"
+                                className="contact-icon flex gap-2"
+                                title="Gọi / Zalo: 0966907473"
+                            >
+                                <FontAwesomeIcon icon={faPhone} />
+                                <span>0966 907 473</span>
+                            </a>
+
+                            {/* FACEBOOK */}
+                            <a
+                                href="https://www.facebook.com/littlemozart.mh"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                style={{ color: "#ffcc00", textDecoration: "underline" }}
+                                className="contact-icon facebook flex gap-2"
+                                title="Facebook"
                             >
-                                Xem bản đồ
+                                <FontAwesomeIcon icon={faFacebook} />
+                                <span>Facebook</span>
                             </a>
-                        </p>
+
+                            {/* INSTAGRAM */}
+                            <a
+                                href="https://www.instagram.com/hmoang22"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="contact-icon instagram flex gap-2"
+                                title="Instagram"
+                            >
+                                <FontAwesomeIcon icon={faInstagram} />
+                                <span>Instagram</span>
+                            </a>
+
+                            {/* MAP */}
+                            <a
+                                href="https://maps.app.goo.gl/g2MQvdShHSmiwDEd8"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="contact-icon map flex gap-2"
+                                title="Xem bản đồ"
+                            >
+                                <FontAwesomeIcon icon={faLocationDot} />
+                                <span>Số 1, Đại Cồ Việt,Hà Nội</span>
+                            </a>
+                        </div>
                     </div>
                     <div className="footer-top-delivery">
                         <h2>Payment</h2>
                         <ul>
                             <li>
-                                Phương thức thanh toán: Thanh toán khi nhận hàng hoặc qua các cổng thanh toán trực tuyến như VNPay, Momo.
+                                Phương thức thanh toán: Thanh toán khi nhận hàng hoặc qua các cổng thanh toán trực tuyến như VNPay.
                             </li>
                             <li>
                                 Giao hàng: Miễn phí vận chuyển cho đơn hàng trên 1.000.000 VNĐ. Hỗ trợ giao hàng nhanh trong 24h tại các thành phố lớn.

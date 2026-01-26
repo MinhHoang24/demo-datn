@@ -6,7 +6,7 @@ import Item from "../Item/Item";
 import apiService from "../../Api/Api";
 import { CATEGORY_ROUTES, CATEGORY_TITLES } from "../../Constants/Category.ts";
 
-export default function Popular({ category }) {
+export default function Popular({ category, onLoadStart, onLoadEnd }) {
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
@@ -18,19 +18,30 @@ export default function Popular({ category }) {
   /* ================= FETCH (BE PAGINATION) ================= */
   useEffect(() => {
     const fetchData = async () => {
-      const res = await apiService.getProducts({
-        category,
-        page,
-        limit,
-        sort: "rating_desc"
-      });
+      try {
+        onLoadStart?.();
 
-      setProducts(res.data.products || []);
-      setTotal(res.data.pagination?.total || 0);
+        const res = await apiService.getProducts({
+          category,
+          page,
+          limit,
+          sort: "rating_desc",
+        });
+
+        setProducts(res.data.products || []);
+        setTotal(res.data.pagination?.total || 0);
+      } catch (error) {
+        console.error("fetchPopular error:", error);
+        setProducts([]);
+        setTotal(0);
+      } finally {
+        onLoadEnd?.();
+      }
     };
 
     fetchData();
   }, [category, page, limit]);
+
 
   /* ================= RESPONSIVE ================= */
   useEffect(() => {
