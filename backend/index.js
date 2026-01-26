@@ -21,7 +21,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const app = express();
 
 const corsOptions = {
-  origin: ["http://localhost:3000"],
+  origin: ["https://demo-datn-xi.vercel.app", "http://localhost:3000"],
   methods: ["GET", "POST", "DELETE", "PATCH", "PUT"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
