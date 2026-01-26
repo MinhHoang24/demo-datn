@@ -13,6 +13,9 @@ const UserProfile = () => {
     const [newPassword, setNewPassword] = useState('');
     const [error, setError] = useState('');
     const [isCurrentPasswordConfirmed, setIsCurrentPasswordConfirmed] = useState(false);
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [isAuthLoading, setIsAuthLoading] = useState(true);
     const [updatedUser, setUpdatedUser] = useState({
         userName: '',
         phoneNumber: '',
@@ -23,27 +26,26 @@ const UserProfile = () => {
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
-                const token = localStorage.getItem('authToken');
-                if (!token) {
-                    Noti.error('Bạn cần đăng nhập để truy cập dữ liệu!');
-                    setIsLoading(true);
-                    return;
-                }
-                const response = await apiService.getUserProfile();
-                if (response.data) {
-                    setUser(response.data.user);
-                    setUpdatedUser({
-                        userName: response.data.user.userName,
-                        phoneNumber: response.data.user.phoneNumber,
-                        diaChi: response.data.user.diaChi,
-                        email: response.data.user.email || ''
-                    });
-                }
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                setUser(null);
+                return;
+            }
+
+            const response = await apiService.getUserProfile();
+            if (response.data?.user) {
+                setUser(response.data.user);
+                setUpdatedUser({
+                userName: response.data.user.userName,
+                phoneNumber: response.data.user.phoneNumber,
+                diaChi: response.data.user.diaChi,
+                email: response.data.user.email || ''
+                });
+            }
             } catch (error) {
-                console.error('Failed to fetch user info', error);
-                Noti.error('Không thể lấy thông tin người dùng!');
+            setUser(null);
             } finally {
-                setIsLoading(false);
+            setIsAuthLoading(false);
             }
         };
 
@@ -72,22 +74,32 @@ const UserProfile = () => {
     };
 
     const handleChangePassword = async () => {
-    if (!currentPassword || !newPassword) {
-        Noti.error("Vui lòng nhập đầy đủ mật khẩu");
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+        Noti.error("Vui lòng nhập đầy đủ thông tin");
+        return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+        Noti.error("Mật khẩu mới không khớp");
         return;
     }
 
     try {
-        await apiService.changePassword(currentPassword, newPassword);
-        Noti.success("Đổi mật khẩu thành công!");
+        setIsChangingPassword(true);
 
+        await apiService.changePassword(currentPassword, newPassword);
+
+        Noti.success("Đổi mật khẩu thành công!");
         setShowChangePassword(false);
         setCurrentPassword("");
         setNewPassword("");
+        setConfirmNewPassword("");
     } catch (error) {
         Noti.error(
         error?.response?.data?.message || "Đổi mật khẩu thất bại"
         );
+    } finally {
+        setIsChangingPassword(false);
     }
     };
 
@@ -103,12 +115,20 @@ const UserProfile = () => {
         }
     };
 
-    if (isLoading) {
-        return <div style={{ paddingTop: "200px", marginLeft: "600px", marginBottom: "200px", fontSize: "25px" }}>Loading...</div>;
+    if (isAuthLoading) {
+    return (
+        <div style={{ padding: 200, textAlign: 'center', fontSize: 22 }}>
+        Đang kiểm tra đăng nhập...
+        </div>
+    );
     }
 
     if (!user) {
-        return <div style={{ paddingTop: "200px", marginLeft: "600px", marginBottom: "200px", fontSize: "25px" }}>Bạn chưa đăng nhập!</div>;
+    return (
+        <div style={{ padding: 200, textAlign: 'center', fontSize: 22 }}>
+        Bạn chưa đăng nhập!
+        </div>
+    );
     }
 
     return (
@@ -185,7 +205,20 @@ const UserProfile = () => {
                 style={{ marginBottom: 10 }}
             />
 
-            <Button type="primary" onClick={handleChangePassword}>
+            <Input.Password
+                placeholder="Nhập lại mật khẩu mới"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                style={{ marginBottom: 16 }}
+            />
+
+            <Button
+                type="primary"
+                loading={isChangingPassword}
+                disabled={isChangingPassword}
+                onClick={handleChangePassword}
+                block
+            >
                 Đổi mật khẩu
             </Button>
             </Modal>
