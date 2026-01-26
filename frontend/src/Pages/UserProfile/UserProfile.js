@@ -3,16 +3,14 @@ import './UserProfile.css';
 import apiService from '../../Api/Api';
 import Noti from "../../Components/NotificationService/NotificationService";
 import { Modal, Input, Button } from 'antd';
+import Loader from "../../Components/Loader/Loader";
 
 const UserProfile = () => {
     const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
     const [showEditProfile, setShowEditProfile] = useState(false);
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
-    const [error, setError] = useState('');
-    const [isCurrentPasswordConfirmed, setIsCurrentPasswordConfirmed] = useState(false);
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -51,27 +49,6 @@ const UserProfile = () => {
 
         fetchUserInfo();
     }, []);
-
-    const handleConfirmCurrentPassword = async () => {
-        try {
-            const phoneNumber = localStorage.getItem("phoneNumber");
-            const response = await apiService.loginUser({
-                phoneNumber: phoneNumber,
-                password: currentPassword
-            });
-            if (response.data.success) {
-                setError('');
-                setIsCurrentPasswordConfirmed(true);
-                Noti.success('Xác nhận mật khẩu cũ thành công!');
-            } else {
-                setError('Mật khẩu cũ không đúng');
-                Noti.error('Mật khẩu cũ không đúng!');
-            }
-        } catch (error) {
-            setError('Mật khẩu cũ không đúng');
-            Noti.error('Mật khẩu cũ không đúng!');
-        }
-    };
 
     const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmNewPassword) {
@@ -118,7 +95,7 @@ const UserProfile = () => {
     if (isAuthLoading) {
     return (
         <div style={{ padding: 200, textAlign: 'center', fontSize: 22 }}>
-        Đang kiểm tra đăng nhập...
+            <Loader />
         </div>
     );
     }
