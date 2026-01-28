@@ -349,8 +349,84 @@ const vnpayReturn = async (req, res) => {
   }
 };
 
+/**
+ * BUY NOW → PAYMENT ONLINE (VNPay)
+ */
+const createVNPayBuyNowPayment = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { items, receiver } = req.body;
+
+    if (!Array.isArray(items) || items.length !== 1) {
+      return res.status(400).json({ message: "Buy Now chỉ cho phép 1 sản phẩm" });
+    }
+
+    const { productId, color, quantity } = items[0];
+
+    const user = await User.findById(userId).lean();
+    if (!user) return res.status(404).json({ message: "User không tồn tại" });
+
+    const product = await Product.findById(productId).lean();
+    if (!product) return res.status(404).json({ message: "Sản phẩm không tồn tại" });
+
+    const variant = findVariant(product, color);
+    if (!variant || variant.quantity < quantity) {
+      return res.status(400).json({ message: "Không đủ tồn kho" });
+    }
+
+    const unitPrice = calcUnitPrice(product, color);
+    const subtotal = unitPrice * quantity;
+
+    const receiverFinal = {
+      name: receiver?.name || user.userName,
+      phoneNumber: receiver?.phoneNumber || user.phoneNumber,
+      address: receiver?.address || user.diaChi,
+    };
+
+    const sessionId = new mongoose.Types.ObjectId();
+
+    await PaymentSession.create({
+      _id: sessionId,
+      txnRef: sessionId.toString(),
+      userId,
+      source: "buy-now",
+      items: [{ productId, color, quantity }],
+      receiver: receiverFinal,
+      subtotal,
+      total: subtotal,
+      status: PAYMENT_SESSION_STATUS.PENDING,
+    });
+
+    // build VNPay url
+    const now = new Date();
+    const vnpParams = {
+      vnp_Version: "2.1.0",
+      vnp_Command: "pay",
+      vnp_TmnCode: process.env.VNP_TMNCODE,
+      vnp_Amount: subtotal * 100,
+      vnp_TxnRef: sessionId.toString(),
+      vnp_OrderInfo: `BuyNow ${sessionId}`,
+      vnp_ReturnUrl: process.env.VNP_RETURN_URL,
+      vnp_IpAddr: getClientIp(req),
+      vnp_CreateDate: formatVnpDateGMT7(now),
+      vnp_ExpireDate: formatVnpDateGMT7(addMinutes(now, 5)),
+    };
+
+    vnpParams.vnp_SecureHash = signParams(vnpParams, process.env.VNP_HASH_SECRET);
+
+    const paymentUrl =
+      process.env.VNP_URL + "?" + qs.stringify(sortObject(vnpParams), { encode: false });
+
+    return res.json({ paymentUrl, txnRef: sessionId.toString() });
+  } catch (err) {
+    console.error("createVNPayBuyNowPayment:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   createVNPayPayment,
   vnpayIPN,
   vnpayReturn,
+  createVNPayBuyNowPayment
 };

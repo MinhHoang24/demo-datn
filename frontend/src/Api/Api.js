@@ -1,7 +1,7 @@
 import axios from "axios";
 
-export const base_url = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
-// export const base_url = "http://localhost:5000";
+// export const base_url = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+export const base_url = "http://localhost:5000";
 axios.defaults.withCredentials = true;
 
 const apiInstance = axios.create({
@@ -100,6 +100,24 @@ const apiService = {
 
   createVNPayPayment: (receiver) =>
     apiInstance.post("/payments/vnpay/create", receiver ? { receiver } : {}),
+
+  createVNPayBuyNowPayment: ({ items, receiver }) =>
+    apiInstance.post("/payments/vnpay/create-buy-now", {
+      items,
+      receiver,
+    }),
+
+  checkoutBuyNowOnline: ({ items, receiver }) =>
+    apiInstance.post("/orders/checkout/buy-now/online", {
+      items,
+      receiver,
+    }),
+
+  checkoutCartOnline: (receiver) =>
+    apiInstance.post(
+      "/orders/checkout/online",
+      receiver ? { receiver } : {}
+    ),
 
   getOrderByTxnRef: (txnRef) =>
     apiInstance.get(`/orders/by-txn/${txnRef}`),

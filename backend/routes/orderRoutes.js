@@ -7,7 +7,9 @@ const {
   getMyOrderById,
   cancelOrderByUser,
   checkoutSelectedCODFromCart,
-  checkoutBuyNowCOD
+  checkoutBuyNowCOD,
+  checkoutBuyNowOnline,
+  checkoutCartOnline
 } = require("../controllers/orderController");
 
 // ✅ Checkout COD từ cart selected
@@ -44,5 +46,8 @@ router.get("/orders/by-txn/:txnRef", protect, async (req, res) => {
 
   res.json({ order });
 });
+
+router.post("/checkout/buy-now/online", protect, checkoutBuyNowOnline);
+router.post("/checkout/online", protect, checkoutCartOnline);
 
 module.exports = router;

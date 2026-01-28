@@ -1,18 +1,22 @@
-import { useEffect } from "react";
+import { useEffect, useContext } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Toast from "../../Components/Toast/Toast";
+import { CartContext } from "../../Contexts/CartCountContext";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const txnRef = searchParams.get("txnRef");
 
+  const { fetchCartCount } = useContext(CartContext);
+
   useEffect(() => {
     // Không có txnRef thì không phải đi từ VNPay → quay về home
     if (!txnRef) {
       navigate("/");
     }
-  }, [txnRef, navigate]);
+    fetchCartCount();
+  }, [txnRef, navigate, fetchCartCount]);
 
   return (
     <>

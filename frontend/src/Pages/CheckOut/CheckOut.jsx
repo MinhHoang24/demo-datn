@@ -1,7 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useContext  } from "react";
 import apiService from "../../Api/Api";
 import Toast from "../../Components/Toast/Toast";
+import { CartContext } from "../../Contexts/CartCountContext";
 
 /* =========================
    UTILS
@@ -27,6 +28,7 @@ const getProductImage = (item) => {
 export default function CheckoutPage() {
   const { state } = useLocation();
   const navigate = useNavigate();
+  const { fetchCartCount } = useContext(CartContext);
 
   /* =========================
      MODE
@@ -167,7 +169,7 @@ export default function CheckoutPage() {
         } else {
           await apiService.checkoutCOD({ receiver });
         }
-
+        await fetchCartCount();
         setToast({ message: "🎉 Đặt hàng thành công!", type: "success" });
         setTimeout(() => navigate("/orders"), 800);
         return;
@@ -180,20 +182,16 @@ export default function CheckoutPage() {
         let res;
 
         if (checkoutMode === "buy-now") {
-          res = await apiService.createVNPayPayment({
-            receiver,
-            source: "buy-now",
+          res = await apiService.checkoutBuyNowOnline({
             items: items.map((it) => ({
               productId: it.product?._id || it.productId,
               color: it.color,
               quantity: it.quantity,
             })),
+            receiver,
           });
         } else {
-          res = await apiService.createVNPayPayment({
-            receiver,
-            source: "cart",
-          });
+          res = await apiService.checkoutCartOnline(receiver);
         }
 
         const paymentUrl = res?.data?.paymentUrl;
@@ -201,7 +199,9 @@ export default function CheckoutPage() {
           throw new Error("Không tạo được link thanh toán VNPay");
         }
 
+        // Redirect sang VNPay
         window.location.href = paymentUrl;
+        return;
       }
     } catch (err) {
       setToast({

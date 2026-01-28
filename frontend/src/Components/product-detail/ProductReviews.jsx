@@ -2,10 +2,14 @@ import React, { useEffect, useState } from "react";
 import ProductRating from "../ProductRating/ProductRating";
 import apiService from "../../Api/Api";
 
+const MIN_LENGTH = 15;
+
 export default function ProductReviews({ product, onOpenPopup }) {
   const [comments, setComments] = useState([]);
   const [content, setContent] = useState("");
   const [rating, setRating] = useState(5);
+
+  const [contentError, setContentError] = useState("");
 
   const [canReview, setCanReview] = useState(false);
   const [checkingPermission, setCheckingPermission] = useState(true);
@@ -13,32 +17,9 @@ export default function ProductReviews({ product, onOpenPopup }) {
   const [editingId, setEditingId] = useState(null);
   const [editContent, setEditContent] = useState("");
   const [editRating, setEditRating] = useState(5);
+  const [editError, setEditError] = useState("");
 
   const myUserId = localStorage.getItem("userID");
-
-  const handleUpdateComment = async (commentId) => {
-    if (editContent.trim().length < 15) {
-      alert("Nội dung đánh giá tối thiểu 15 ký tự");
-      return;
-    }
-
-    try {
-      await apiService.updateMyComment(commentId, {
-        text: editContent,
-        rating: editRating,
-      });
-
-      setEditingId(null);
-      setEditContent("");
-      setEditRating(5);
-
-      const res = await apiService.getComments(product._id);
-      setComments(res.data?.comments || []);
-    } catch (err) {
-      alert(err?.response?.data?.message || "Cập nhật đánh giá thất bại");
-    }
-  };
-
   const isLoggedIn = !!localStorage.getItem("authToken");
 
   // ================= FETCH COMMENTS =================
@@ -76,7 +57,6 @@ export default function ProductReviews({ product, onOpenPopup }) {
         console.error("Check review permission failed:", err);
         setCanReview(false);
       } finally {
-        // 🔥 BẮT BUỘC PHẢI CÓ
         setCheckingPermission(false);
       }
     };
@@ -84,7 +64,7 @@ export default function ProductReviews({ product, onOpenPopup }) {
     checkReviewPermission();
   }, [product, isLoggedIn]);
 
-  // ================= SUBMIT =================
+  // ================= SUBMIT COMMENT =================
   const handleSubmit = async () => {
     if (!isLoggedIn) {
       onOpenPopup?.();
@@ -93,8 +73,8 @@ export default function ProductReviews({ product, onOpenPopup }) {
 
     if (!canReview) return;
 
-    if (content.trim().length < 15) {
-      alert("Nội dung đánh giá tối thiểu 15 ký tự");
+    if (content.trim().length < MIN_LENGTH) {
+      setContentError(`Nội dung phải có ít nhất ${MIN_LENGTH} ký tự`);
       return;
     }
 
@@ -107,11 +87,37 @@ export default function ProductReviews({ product, onOpenPopup }) {
 
       setContent("");
       setRating(5);
+      setContentError("");
 
       const res = await apiService.getComments(product._id);
       setComments(res.data?.comments || []);
     } catch (err) {
       alert(err?.response?.data?.message || "Gửi đánh giá thất bại");
+    }
+  };
+
+  // ================= UPDATE COMMENT =================
+  const handleUpdateComment = async (commentId) => {
+    if (editContent.trim().length < MIN_LENGTH) {
+      setEditError(`Nội dung phải có ít nhất ${MIN_LENGTH} ký tự`);
+      return;
+    }
+
+    try {
+      await apiService.updateMyComment(commentId, {
+        text: editContent,
+        rating: editRating,
+      });
+
+      setEditingId(null);
+      setEditContent("");
+      setEditRating(5);
+      setEditError("");
+
+      const res = await apiService.getComments(product._id);
+      setComments(res.data?.comments || []);
+    } catch (err) {
+      alert(err?.response?.data?.message || "Cập nhật đánh giá thất bại");
     }
   };
 
@@ -123,8 +129,7 @@ export default function ProductReviews({ product, onOpenPopup }) {
     <section id="reviews-section" className="space-y-6">
       <h2 className="text-lg font-semibold">Đánh giá & nhận xét</h2>
 
-      {/* ================= REVIEW FORM / MESSAGE ================= */}
-      {/* ================= REVIEW FORM / MESSAGE ================= */}
+      {/* ================= REVIEW FORM ================= */}
       {checkingPermission ? (
         <p className="text-sm text-gray-500">Đang kiểm tra quyền đánh giá...</p>
       ) : !isLoggedIn ? (
@@ -143,13 +148,34 @@ export default function ProductReviews({ product, onOpenPopup }) {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <textarea
-            className="w-full border rounded-lg p-3 text-sm focus:ring focus:ring-blue-200"
+            className={`w-full border rounded-lg p-3 text-sm focus:ring
+              ${
+                contentError
+                  ? "border-red-500 focus:ring-red-200"
+                  : "focus:ring-blue-200"
+              }
+            `}
             placeholder="Nội dung đánh giá (tối thiểu 15 ký tự)"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setContent(value);
+
+              if (value.trim().length < MIN_LENGTH) {
+                setContentError(
+                  `Nội dung phải có ít nhất ${MIN_LENGTH} ký tự`
+                );
+              } else {
+                setContentError("");
+              }
+            }}
           />
+
+          {contentError && (
+            <p className="text-xs text-red-600">{contentError}</p>
+          )}
 
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium">Đánh giá:</span>
@@ -162,13 +188,19 @@ export default function ProductReviews({ product, onOpenPopup }) {
 
           <button
             onClick={handleSubmit}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            disabled={content.trim().length < MIN_LENGTH}
+            className={`px-4 py-2 rounded-lg transition
+              ${
+                content.trim().length < MIN_LENGTH
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }
+            `}
           >
             Gửi đánh giá
           </button>
         </div>
       )}
-
 
       {/* ================= LIST COMMENTS ================= */}
       <div className="space-y-4">
@@ -178,13 +210,10 @@ export default function ProductReviews({ product, onOpenPopup }) {
 
         {comments.map((c) => {
           const isMine = String(c.userId?._id) === String(myUserId);
-            console.log("myUserId:", myUserId);
-            console.log("comment userId:", c.userId);
           const isEditing = editingId === c._id;
 
           return (
             <div key={c._id} className="border rounded-lg p-4 space-y-2">
-              {/* HEADER */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold">
                   {c.userId?.userName || "Khách hàng"}
@@ -196,32 +225,56 @@ export default function ProductReviews({ product, onOpenPopup }) {
                 <ProductRating rating={c.rating || 0} />
               </div>
 
-              {/* CONTENT */}
               {isEditing ? (
                 <>
                   <textarea
-                    className="w-full border rounded-lg p-2 text-sm"
+                    className={`w-full border rounded-lg p-2 text-sm
+                      ${editError ? "border-red-500" : ""}
+                    `}
                     value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setEditContent(value);
+
+                      if (value.trim().length < MIN_LENGTH) {
+                        setEditError(
+                          `Nội dung phải có ít nhất ${MIN_LENGTH} ký tự`
+                        );
+                      } else {
+                        setEditError("");
+                      }
+                    }}
                   />
 
-                  <div className="flex items-center gap-2">
-                    <ProductRating
-                      rating={editRating}
-                      onChange={(v) => setEditRating(v)}
-                      size={20}
-                    />
-                  </div>
+                  {editError && (
+                    <p className="text-xs text-red-600">{editError}</p>
+                  )}
+
+                  <ProductRating
+                    rating={editRating}
+                    onChange={(v) => setEditRating(v)}
+                    size={20}
+                  />
 
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleUpdateComment(c._id)}
-                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
+                      disabled={editContent.trim().length < MIN_LENGTH}
+                      className={`px-3 py-1 text-sm rounded
+                        ${
+                          editContent.trim().length < MIN_LENGTH
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : "bg-blue-600 text-white"
+                        }
+                      `}
                     >
                       Lưu
                     </button>
                     <button
-                      onClick={() => setEditingId(null)}
+                      onClick={() => {
+                        setEditingId(null);
+                        setEditError("");
+                      }}
                       className="px-3 py-1 text-sm border rounded"
                     >
                       Hủy
@@ -237,12 +290,13 @@ export default function ProductReviews({ product, onOpenPopup }) {
                       {new Date(c.createdAt).toLocaleDateString("vi-VN")}
                     </p>
 
-                    {isMine && !isEditing && (
+                    {isMine && (
                       <button
                         onClick={() => {
                           setEditingId(c._id);
                           setEditContent(c.text);
                           setEditRating(c.rating);
+                          setEditError("");
                         }}
                         className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                       >

@@ -3,6 +3,10 @@ const mongoose = require("mongoose");
 const Product = require("../models/productModel");
 const Cart = require("../models/cartModel");
 const User = require("../models/userModel");
+const {
+  createVNPayPayment,
+  createVNPayBuyNowPayment,
+} = require("./paymentController");
 
 const { Order, ORDER_STATUS, PAYMENT_METHOD, PAYMENT_STATUS } = require("../models/orderModel");
 const {
@@ -324,7 +328,6 @@ const cancelOrderByUser = async (req, res) => {
   }
 };
 
-
 /**
  * ADMIN: hủy đơn (khớp PATCH /admin/orders/:orderId/cancel)
  * - hoàn kho + set CANCELLED
@@ -396,7 +399,6 @@ const cancelOrderByAdmin = async (req, res) => {
     session.endSession();
   }
 };
-
 
 const checkoutBuyNowCOD = async (req, res) => {
   const session = await mongoose.startSession();
@@ -517,6 +519,28 @@ const checkoutBuyNowCOD = async (req, res) => {
     session.endSession();
   }
 };
+
+/**
+ * BUY NOW → CHECKOUT ONLINE
+ * ❌ KHÔNG tạo Order
+ */
+const checkoutBuyNowOnline = async (req, res) => {
+  try {
+    // chỉ forward sang payment
+    return createVNPayBuyNowPayment(req, res);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const checkoutCartOnline = async (req, res) => {
+  try {
+    return createVNPayPayment(req, res);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   // user
   getMyOrders,
@@ -524,6 +548,8 @@ module.exports = {
   checkoutSelectedCODFromCart,
   cancelOrderByUser,
   checkoutBuyNowCOD,
+  checkoutBuyNowOnline,
+  checkoutCartOnline,
 
   // admin cancel
   cancelOrderByAdmin
