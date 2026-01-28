@@ -3,10 +3,8 @@ import { useEffect, useMemo, useState, useContext  } from "react";
 import apiService from "../../Api/Api";
 import Toast from "../../Components/Toast/Toast";
 import { CartContext } from "../../Contexts/CartCountContext";
+import Loader from "../../Components/Loader/Loader";
 
-/* =========================
-   UTILS
-========================= */
 const formatPrice = (p) =>
   Number(p || 0).toLocaleString("vi-VN", {
     style: "currency",
@@ -30,54 +28,30 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const { fetchCartCount } = useContext(CartContext);
 
-  /* =========================
-     MODE
-  ========================= */
   const checkoutMode = state?.from === "buy-now" ? "buy-now" : "cart";
 
-  /* =========================
-     ITEMS
-  ========================= */
   const items = useMemo(() => state?.items ?? [], [state]);
 
-  /* =========================
-     TOAST
-  ========================= */
   const [toast, setToast] = useState({ message: "", type: "success" });
 
-  /* =========================
-     USER
-  ========================= */
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  /* =========================
-     RECEIVER (LOCAL)
-  ========================= */
   const [receiver, setReceiver] = useState({
     name: "",
     phoneNumber: "",
     address: "",
   });
 
-  /* =========================
-     PAYMENT
-  ========================= */
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /* =========================
-     GUARD: BUY NOW cần items
-  ========================= */
   useEffect(() => {
     if (checkoutMode === "buy-now" && !items.length) {
       navigate("/");
     }
   }, [checkoutMode, items, navigate]);
 
-  /* =========================
-     FETCH USER
-  ========================= */
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -97,9 +71,6 @@ export default function CheckoutPage() {
     fetchUser();
   }, [navigate]);
 
-  /* =========================
-     SYNC USER → RECEIVER (1 lần)
-  ========================= */
   useEffect(() => {
     if (user) {
       setReceiver({
@@ -110,9 +81,6 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
-  /* =========================
-     TOTAL
-  ========================= */
   const totalPrice = useMemo(() => {
     return items.reduce((sum, it) => {
       const price =
@@ -122,9 +90,6 @@ export default function CheckoutPage() {
     }, 0);
   }, [items]);
 
-  /* =========================
-     VALIDATION
-  ========================= */
   const isReceiverValid = useMemo(() => {
     return (
       typeof receiver.name === "string" &&
@@ -136,9 +101,6 @@ export default function CheckoutPage() {
     );
   }, [receiver]);
 
-  /* =========================
-     SUBMIT
-  ========================= */
   const handleCheckout = async () => {
     if (isSubmitting) return;
 
@@ -153,9 +115,6 @@ export default function CheckoutPage() {
     try {
       setIsSubmitting(true);
 
-      /* =========================
-        COD
-      ========================= */
       if (paymentMethod === "cod") {
         if (checkoutMode === "buy-now") {
           await apiService.checkoutBuyNowCOD({
@@ -175,9 +134,6 @@ export default function CheckoutPage() {
         return;
       }
 
-      /* =========================
-        QR - VNPAY
-      ========================= */
       if (paymentMethod === "qr") {
         let res;
 
@@ -199,7 +155,6 @@ export default function CheckoutPage() {
           throw new Error("Không tạo được link thanh toán VNPay");
         }
 
-        // Redirect sang VNPay
         window.location.href = paymentUrl;
         return;
       }
@@ -215,14 +170,9 @@ export default function CheckoutPage() {
     }
   };
 
-  /* =========================
-     GUARD RENDER
-  ========================= */
   if (loadingUser || !user) {
     return (
-      <div className="max-w-5xl mx-auto p-10 text-center">
-        Đang tải thông tin người dùng...
-      </div>
+      <Loader />
     );
   }
 

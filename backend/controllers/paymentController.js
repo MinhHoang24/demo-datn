@@ -18,9 +18,6 @@ const {
   PAYMENT_SESSION_STATUS,
 } = require("../models/paymentSessionModel");
 
-/* =========================
-   VNPay helpers (NO moment)
-========================= */
 const pad2 = (n) => String(n).padStart(2, "0");
 
 function formatVnpDateGMT7(date = new Date()) {
@@ -72,9 +69,6 @@ function getClientIp(req) {
   return ip;
 }
 
-/* =========================
-   Product helpers
-========================= */
 function findVariant(product, color) {
   return (product.variants || []).find(
     (v) => (v.color || "").toLowerCase() === String(color).toLowerCase()
@@ -94,13 +88,9 @@ function calcUnitPrice(product, color) {
 }
 
 function getFEUrl() {
-  return process.env.FE_URL || "http://localhost:3000";
+  return process.env.FE_URL;
 }
 
-/* =========================================================
-   1) CREATE PAYMENT (VNPay)
-   ❌ KHÔNG tạo Order
-========================================================= */
 const createVNPayPayment = async (req, res) => {
   try {
     const userId = req.userId;
@@ -154,7 +144,6 @@ const createVNPayPayment = async (req, res) => {
       });
     }
 
-    // 🔥 tạo ObjectId trước → txnRef hợp lệ ngay
     const sessionId = new mongoose.Types.ObjectId();
 
     await PaymentSession.create({
@@ -180,11 +169,11 @@ const createVNPayPayment = async (req, res) => {
       vnp_OrderType: "other",
       vnp_Amount: subtotal * 100,
       vnp_ReturnUrl: process.env.VNP_RETURN_URL,
+      vnp_IpnUrl: process.env.VNP_IPN_URL,
       vnp_IpAddr: getClientIp(req),
       vnp_CreateDate: formatVnpDateGMT7(now),
       vnp_ExpireDate: formatVnpDateGMT7(addMinutes(now, 5)),
     };
-
     const secureHash = signParams(vnpParams, process.env.VNP_HASH_SECRET);
     const finalParams = sortObject(vnpParams);
     finalParams.vnp_SecureHash = secureHash;
@@ -199,9 +188,6 @@ const createVNPayPayment = async (req, res) => {
   }
 };
 
-/* =========================================================
-   2) IPN – DUY NHẤT nơi tạo Order
-========================================================= */
 const vnpayIPN = async (req, res) => {
   const session = await mongoose.startSession();
   try {
@@ -302,9 +288,6 @@ const vnpayIPN = async (req, res) => {
   }
 };
 
-/* =========================================================
-   3) RETURN – chỉ redirect FE
-========================================================= */
 const vnpayReturn = async (req, res) => {
   try {
     let params = { ...req.query };
@@ -319,7 +302,6 @@ const vnpayReturn = async (req, res) => {
 
     const txnRef = params.vnp_TxnRef;
 
-    // 🔥 DEV MODE: TẠO ORDER TẠI RETURN NẾU IPN KHÔNG CHẠY
     if (
       process.env.NODE_ENV !== "production" &&
       params.vnp_ResponseCode === "00"
@@ -327,10 +309,9 @@ const vnpayReturn = async (req, res) => {
       const ps = await PaymentSession.findOne({ txnRef });
 
       if (ps && ps.status !== PAYMENT_SESSION_STATUS.SUCCESS) {
-        // ❗ GỌI LẠI LOGIC TẠO ORDER (TÁI SỬ DỤNG IPN)
         await vnpayIPN(
           { query: { ...req.query } },
-          { json: () => {} } // fake response
+          { json: () => {} }
         );
       }
     }
@@ -349,9 +330,6 @@ const vnpayReturn = async (req, res) => {
   }
 };
 
-/**
- * BUY NOW → PAYMENT ONLINE (VNPay)
- */
 const createVNPayBuyNowPayment = async (req, res) => {
   try {
     const userId = req.userId;
@@ -397,7 +375,6 @@ const createVNPayBuyNowPayment = async (req, res) => {
       status: PAYMENT_SESSION_STATUS.PENDING,
     });
 
-    // build VNPay url
     const now = new Date();
     const vnpParams = {
       vnp_Version: "2.1.0",
@@ -407,6 +384,7 @@ const createVNPayBuyNowPayment = async (req, res) => {
       vnp_TxnRef: sessionId.toString(),
       vnp_OrderInfo: `BuyNow ${sessionId}`,
       vnp_ReturnUrl: process.env.VNP_RETURN_URL,
+      vnp_IpnUrl: process.env.VNP_IPN_URL,
       vnp_IpAddr: getClientIp(req),
       vnp_CreateDate: formatVnpDateGMT7(now),
       vnp_ExpireDate: formatVnpDateGMT7(addMinutes(now, 5)),
