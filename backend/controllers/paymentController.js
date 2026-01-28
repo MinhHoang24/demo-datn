@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const crypto = require("crypto");
-const qs = require("qs");
 
 const Product = require("../models/productModel");
 const Cart = require("../models/cartModel");
@@ -37,25 +36,6 @@ function formatVnpDateGMT7(date = new Date()) {
 const addMinutes = (date, minutes) =>
   new Date(date.getTime() + minutes * 60000);
 
-function sortObject(obj) {
-  const sorted = {};
-  Object.keys(obj)
-    .sort()
-    .forEach((key) => {
-      sorted[key] = encodeURIComponent(obj[key]).replace(/%20/g, "+");
-    });
-  return sorted;
-}
-
-function signParams(params, secretKey) {
-  const sorted = sortObject(params);
-  const signData = qs.stringify(sorted, { encode: false });
-  return crypto
-    .createHmac("sha512", secretKey)
-    .update(Buffer.from(signData, "utf-8"))
-    .digest("hex");
-}
-
 function getClientIp(req) {
   let ip =
     req.headers["x-forwarded-for"] ||
@@ -91,6 +71,45 @@ function getFEUrl() {
   return process.env.FE_URL;
 }
 
+function buildVnpSignData(vnpParams) {
+  return Object.keys(vnpParams)
+    .sort()
+    .map(
+      (key) =>
+        `${key}=${encodeURIComponent(vnpParams[key]).replace(/%20/g, "+")}`
+    )
+    .join("&");
+}
+
+function signVNPay(signData) {
+  return crypto
+    .createHmac("sha512", process.env.VNP_HASH_SECRET)
+    .update(signData, "utf-8")
+    .digest("hex");
+}
+
+function buildVNPayUrl(vnpParams) {
+  const signData = buildVnpSignData(vnpParams);
+  const secureHash = signVNPay(signData);
+
+  const paymentUrl =
+    process.env.VNP_URL +
+    "?" +
+    signData +
+    "&vnp_SecureHash=" +
+    secureHash;
+
+  console.log("\n===== VNP SIGN DATA =====");
+  console.log(signData);
+  console.log("===== VNP SECURE HASH =====");
+  console.log(secureHash);
+  console.log("===== VNP PAYMENT URL =====");
+  console.log(paymentUrl);
+  console.log("===========================\n");
+
+  return paymentUrl;
+}
+
 const createVNPayPayment = async (req, res) => {
   try {
     const userId = req.userId;
@@ -106,7 +125,11 @@ const createVNPayPayment = async (req, res) => {
       note: receiver?.note?.trim() || "",
     };
 
-    if (!receiverFinal.name || !receiverFinal.phoneNumber || !receiverFinal.address) {
+    if (
+      !receiverFinal.name ||
+      !receiverFinal.phoneNumber ||
+      !receiverFinal.address
+    ) {
       return res.status(400).json({ message: "Thiếu thông tin người nhận" });
     }
 
@@ -174,13 +197,8 @@ const createVNPayPayment = async (req, res) => {
       vnp_CreateDate: formatVnpDateGMT7(now),
       vnp_ExpireDate: formatVnpDateGMT7(addMinutes(now, 5)),
     };
-    const secureHash = signParams(vnpParams, process.env.VNP_HASH_SECRET);
-    const finalParams = sortObject(vnpParams);
-    finalParams.vnp_SecureHash = secureHash;
 
-    const paymentUrl =
-      process.env.VNP_URL + "?" + qs.stringify(finalParams, { encode: false });
-
+    const paymentUrl = buildVNPayUrl(vnpParams);
     return res.json({ paymentUrl, txnRef: sessionId.toString() });
   } catch (err) {
     console.error("createVNPayPayment:", err);
@@ -188,16 +206,93 @@ const createVNPayPayment = async (req, res) => {
   }
 };
 
+const createVNPayBuyNowPayment = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { items, receiver } = req.body;
+
+    if (!Array.isArray(items) || items.length !== 1) {
+      return res
+        .status(400)
+        .json({ message: "Buy Now chỉ cho phép 1 sản phẩm" });
+    }
+
+    const { productId, color, quantity } = items[0];
+
+    const user = await User.findById(userId).lean();
+    if (!user) return res.status(404).json({ message: "User không tồn tại" });
+
+    const product = await Product.findById(productId).lean();
+    if (!product)
+      return res.status(404).json({ message: "Sản phẩm không tồn tại" });
+
+    const variant = findVariant(product, color);
+    if (!variant || variant.quantity < quantity) {
+      return res.status(400).json({ message: "Không đủ tồn kho" });
+    }
+
+    const unitPrice = calcUnitPrice(product, color);
+    const subtotal = unitPrice * quantity;
+
+    const receiverFinal = {
+      name: receiver?.name || user.userName,
+      phoneNumber: receiver?.phoneNumber || user.phoneNumber,
+      address: receiver?.address || user.diaChi,
+    };
+
+    const sessionId = new mongoose.Types.ObjectId();
+
+    await PaymentSession.create({
+      _id: sessionId,
+      txnRef: sessionId.toString(),
+      userId,
+      source: "buy-now",
+      items: [{ productId, color, quantity }],
+      receiver: receiverFinal,
+      subtotal,
+      total: subtotal,
+      status: PAYMENT_SESSION_STATUS.PENDING,
+    });
+
+    const now = new Date();
+
+    const vnpParams = {
+      vnp_Version: "2.1.0",
+      vnp_Command: "pay",
+      vnp_TmnCode: process.env.VNP_TMNCODE,
+      vnp_Locale: "vn",
+      vnp_CurrCode: "VND",
+      vnp_TxnRef: sessionId.toString(),
+      vnp_OrderInfo: `ORDER_${sessionId}`,
+      vnp_OrderType: "other",
+      vnp_Amount: subtotal * 100,
+      vnp_ReturnUrl: process.env.VNP_RETURN_URL,
+      vnp_IpnUrl: process.env.VNP_IPN_URL,
+      vnp_IpAddr: "14.160.0.1",
+      vnp_CreateDate: formatVnpDateGMT7(now),
+      vnp_ExpireDate: formatVnpDateGMT7(addMinutes(now, 5)),
+    };
+
+    const paymentUrl = buildVNPayUrl(vnpParams);
+    return res.json({ paymentUrl, txnRef: sessionId.toString() });
+  } catch (err) {
+    console.error("createVNPayBuyNowPayment:", err);
+    return res.status(500).json({ message: err.message });
+  }
+};
+
 const vnpayIPN = async (req, res) => {
   const session = await mongoose.startSession();
   try {
-    let params = { ...req.query };
+    const params = { ...req.query };
     const secureHash = params.vnp_SecureHash;
 
     delete params.vnp_SecureHash;
     delete params.vnp_SecureHashType;
 
-    if (secureHash !== signParams(params, process.env.VNP_HASH_SECRET)) {
+    const signData = buildVnpSignData(params);
+    const signed = signVNPay(signData);
+    if (secureHash !== signed) {
       return res.json({ RspCode: "97", Message: "Invalid checksum" });
     }
 
@@ -214,7 +309,9 @@ const vnpayIPN = async (req, res) => {
 
     session.startTransaction();
 
-    const ps = await PaymentSession.findOne({ txnRef: params.vnp_TxnRef }).session(session);
+    const ps = await PaymentSession.findOne({
+      txnRef: params.vnp_TxnRef,
+    }).session(session);
     if (!ps || (ps.status === PAYMENT_SESSION_STATUS.SUCCESS && ps.orderId)) {
       await session.commitTransaction();
       return res.json({ RspCode: "00", Message: "OK" });
@@ -290,31 +387,20 @@ const vnpayIPN = async (req, res) => {
 
 const vnpayReturn = async (req, res) => {
   try {
-    let params = { ...req.query };
+    const params = { ...req.query };
     const secureHash = params.vnp_SecureHash;
 
     delete params.vnp_SecureHash;
     delete params.vnp_SecureHashType;
 
-    if (secureHash !== signParams(params, process.env.VNP_HASH_SECRET)) {
+    const signData = buildVnpSignData(params);
+    const signed = signVNPay(signData);
+
+    if (secureHash !== signed) {
       return res.redirect(`${getFEUrl()}/payment-fail`);
     }
 
     const txnRef = params.vnp_TxnRef;
-
-    if (
-      process.env.NODE_ENV !== "production" &&
-      params.vnp_ResponseCode === "00"
-    ) {
-      const ps = await PaymentSession.findOne({ txnRef });
-
-      if (ps && ps.status !== PAYMENT_SESSION_STATUS.SUCCESS) {
-        await vnpayIPN(
-          { query: { ...req.query } },
-          { json: () => {} }
-        );
-      }
-    }
 
     const FE_SUCCESS = `${getFEUrl()}/payment-success`;
     const FE_FAIL = `${getFEUrl()}/payment-fail`;
@@ -326,79 +412,7 @@ const vnpayReturn = async (req, res) => {
     );
   } catch (err) {
     console.error("vnpayReturn:", err);
-    return res.redirect("http://localhost:3000/payment-fail");
-  }
-};
-
-const createVNPayBuyNowPayment = async (req, res) => {
-  try {
-    const userId = req.userId;
-    const { items, receiver } = req.body;
-
-    if (!Array.isArray(items) || items.length !== 1) {
-      return res.status(400).json({ message: "Buy Now chỉ cho phép 1 sản phẩm" });
-    }
-
-    const { productId, color, quantity } = items[0];
-
-    const user = await User.findById(userId).lean();
-    if (!user) return res.status(404).json({ message: "User không tồn tại" });
-
-    const product = await Product.findById(productId).lean();
-    if (!product) return res.status(404).json({ message: "Sản phẩm không tồn tại" });
-
-    const variant = findVariant(product, color);
-    if (!variant || variant.quantity < quantity) {
-      return res.status(400).json({ message: "Không đủ tồn kho" });
-    }
-
-    const unitPrice = calcUnitPrice(product, color);
-    const subtotal = unitPrice * quantity;
-
-    const receiverFinal = {
-      name: receiver?.name || user.userName,
-      phoneNumber: receiver?.phoneNumber || user.phoneNumber,
-      address: receiver?.address || user.diaChi,
-    };
-
-    const sessionId = new mongoose.Types.ObjectId();
-
-    await PaymentSession.create({
-      _id: sessionId,
-      txnRef: sessionId.toString(),
-      userId,
-      source: "buy-now",
-      items: [{ productId, color, quantity }],
-      receiver: receiverFinal,
-      subtotal,
-      total: subtotal,
-      status: PAYMENT_SESSION_STATUS.PENDING,
-    });
-
-    const now = new Date();
-    const vnpParams = {
-      vnp_Version: "2.1.0",
-      vnp_Command: "pay",
-      vnp_TmnCode: process.env.VNP_TMNCODE,
-      vnp_Amount: subtotal * 100,
-      vnp_TxnRef: sessionId.toString(),
-      vnp_OrderInfo: `BuyNow ${sessionId}`,
-      vnp_ReturnUrl: process.env.VNP_RETURN_URL,
-      vnp_IpnUrl: process.env.VNP_IPN_URL,
-      vnp_IpAddr: getClientIp(req),
-      vnp_CreateDate: formatVnpDateGMT7(now),
-      vnp_ExpireDate: formatVnpDateGMT7(addMinutes(now, 5)),
-    };
-
-    vnpParams.vnp_SecureHash = signParams(vnpParams, process.env.VNP_HASH_SECRET);
-
-    const paymentUrl =
-      process.env.VNP_URL + "?" + qs.stringify(sortObject(vnpParams), { encode: false });
-
-    return res.json({ paymentUrl, txnRef: sessionId.toString() });
-  } catch (err) {
-    console.error("createVNPayBuyNowPayment:", err);
-    res.status(500).json({ message: err.message });
+    return res.redirect(`${getFEUrl()}/payment-fail`);
   }
 };
 
