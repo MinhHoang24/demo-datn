@@ -125,6 +125,26 @@ const AdminProduct = () => {
       ),
     },
     {
+      title: "Số lượng",
+      key: "totalQuantity",
+      align: "center",
+      render: (_, record) => {
+        const totalQty = record.variants?.reduce(
+          (sum, v) => sum + (v.quantity || 0),
+          0
+        ) || 0;
+
+        return (
+          <span style={{ 
+            color: totalQty === 0 ? "red" : "inherit",
+            fontWeight: totalQty === 0 ? 600 : 400
+          }}>
+            {totalQty}
+          </span>
+        );
+      },
+    },
+    {
       title: "Action",
       width: 80,
       render: (_, record) => (

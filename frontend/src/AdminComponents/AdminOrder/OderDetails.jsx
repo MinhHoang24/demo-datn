@@ -139,6 +139,15 @@ export default function AdminOrderDetail({ orderId, onUpdated }) {
         {order.userId?.userName} – {order.userId?.phoneNumber}
       </p>
       <p><b>Địa chỉ:</b> {order.receiver?.address}</p>
+      <p>
+      <b>Người nhận:</b>{" "}
+        {order.receiver?.name} – {order.receiver?.phoneNumber}
+      </p>
+
+      <p>
+        <b>Địa chỉ giao hàng:</b>{" "}
+        {order.receiver?.address}
+      </p>
 
       <p>
         <b>Trạng thái:</b>{" "}

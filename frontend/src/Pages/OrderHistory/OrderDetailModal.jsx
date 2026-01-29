@@ -100,6 +100,24 @@ export default function OrderDetailModal({
             </div>
           </Link>
         ))}
+        <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
+          <h3 className="font-semibold">Thông tin người nhận</h3>
+
+          <p>
+            <span className="text-gray-500">Họ và tên:</span>{" "}
+            <span className="font-medium">{order.receiver?.name}</span>
+          </p>
+
+          <p>
+            <span className="text-gray-500">Số điện thoại:</span>{" "}
+            <span className="font-medium">{order.receiver?.phoneNumber}</span>
+          </p>
+
+          <p>
+            <span className="text-gray-500">Địa chỉ:</span>{" "}
+            <span className="font-medium">{order.receiver?.address}</span>
+          </p>
+        </div>
 
         <div className="flex justify-between font-bold text-lg pt-2">
           <span>Tổng cộng</span>
