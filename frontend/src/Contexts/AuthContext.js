@@ -5,22 +5,33 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
+    const isTokenExpired = (token) => {
+        try {
+            const payload = JSON.parse(atob(token.split(".")[1]));
+            return payload.exp * 1000 < Date.now();
+        } catch {
+            return true;
+        }
+    };
 
     useEffect(() => {
         try {
-            const token = localStorage.getItem('authToken');
-            if (token) {
-            setIsLoggedIn(true);
-            const storedUser = localStorage.getItem('user');
-            if (storedUser && storedUser !== "undefined" && storedUser !== "null") {
-                const parsedUser = JSON.parse(storedUser);
-                if (parsedUser) {
-                setUser(parsedUser);
-                }
+            const token = localStorage.getItem("authToken");
+            const storedUser = localStorage.getItem("user");
+
+            if (!token || isTokenExpired(token)) {
+                logout();
+                return;
             }
+
+            setIsLoggedIn(true);
+
+            if (storedUser && storedUser !== "undefined" && storedUser !== "null") {
+                setUser(JSON.parse(storedUser));
             }
         } catch (error) {
-            console.error('Failed to parse user from localStorage', error);
+            console.error("Auth init failed", error);
+            logout();
         }
     }, []);
 
@@ -35,8 +46,7 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         setUser(null);
         setIsLoggedIn(false);
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
+        localStorage.clear();
     };
 
     const value = {

@@ -22,9 +22,6 @@ const formatCurrency = (v) =>
   });
 
 export default function AdminOrder() {
-  /* ================= STATE ================= */
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [revenueLoading, setRevenueLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
 
@@ -38,22 +35,6 @@ export default function AdminOrder() {
   const [openDetail, setOpenDetail] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
 
-  const fetchTotalRevenue = useCallback(async () => {
-    setRevenueLoading(true);
-    try {
-      const res = await apiService.getAdminTotalRevenue();
-      setTotalRevenue(res.data.totalRevenue || 0);
-    } catch (err) {
-      console.error(err);
-      message.error("Không thể tải tổng doanh thu");
-    } finally {
-      setRevenueLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchTotalRevenue();
-  }, [fetchTotalRevenue]);
 
   const handleDeleteOrder = (order) => {
     Modal.confirm({
@@ -184,35 +165,6 @@ export default function AdminOrder() {
 
   return (
     <>
-      <div
-        style={{
-          marginBottom: 16,
-          padding: "12px 16px",
-          background: "#fafafa",
-          border: "1px solid #f0f0f0",
-          borderRadius: 8,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <span style={{ fontWeight: 600 }}>
-          Tổng doanh thu hệ thống:
-        </span>
-
-        <span
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-          }}
-          className="text-blue-600"
-        >
-          {revenueLoading
-            ? "Đang tải..."
-            : formatCurrency(totalRevenue)}
-        </span>
-      </div>
-
       {/* ===== FILTER BAR ===== */}
       <Space style={{ marginBottom: 16 }} wrap>
         <span className="px-4">Lọc trạng thái:</span>

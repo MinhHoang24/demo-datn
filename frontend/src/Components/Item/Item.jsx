@@ -71,7 +71,7 @@ export default function Item({
         {/* PROMOTION */}
         <div className="mt-2 bg-blue-50 border border-blue-100 rounded px-2 py-1">
           <p className="text-xs text-blue-700 line-clamp-2">
-            Ưu đãi trả góp 0% lãi suất – 0% phí chuyển đổi
+            Hỗ trợ thanh toán online nhanh chóng - thuận tiện
           </p>
         </div>
 

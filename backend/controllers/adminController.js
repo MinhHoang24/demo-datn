@@ -769,6 +769,76 @@ const getTotalRevenue = async (req, res) => {
   }
 };
 
+const getRevenueByCategory = async (req, res) => {
+  try {
+    const result = await Order.aggregate([
+      /* ================= VALID ORDERS ================= */
+      {
+        $match: {
+          $or: [
+            {
+              paymentMethod: PAYMENT_METHOD.COD,
+              status: ORDER_STATUS.DELIVERED,
+            },
+            {
+              paymentMethod: PAYMENT_METHOD.QR,
+              paymentStatus: PAYMENT_STATUS.PAID,
+            },
+          ],
+        },
+      },
+
+      /* ================= FLATTEN ITEMS ================= */
+      { $unwind: "$items" },
+
+      /* ================= JOIN PRODUCT ================= */
+      {
+        $lookup: {
+          from: "products", // collection name
+          localField: "items.productId",
+          foreignField: "_id",
+          as: "product",
+        },
+      },
+
+      { $unwind: "$product" },
+
+      /* ================= GROUP BY CATEGORY ================= */
+      {
+        $group: {
+          _id: "$product.category",
+          totalRevenue: { $sum: "$items.lineTotal" },
+          totalQuantity: { $sum: "$items.quantity" },
+          totalOrders: { $addToSet: "$_id" },
+        },
+      },
+
+      /* ================= FORMAT ================= */
+      {
+        $project: {
+          _id: 0,
+          category: "$_id",
+          totalRevenue: 1,
+          totalQuantity: 1,
+          totalOrders: { $size: "$totalOrders" },
+        },
+      },
+
+      /* ================= SORT ================= */
+      { $sort: { totalRevenue: -1 } },
+    ]);
+
+    return res.status(200).json({
+      data: result,
+    });
+  } catch (error) {
+    console.error("getRevenueByCategory error:", error);
+    return res.status(500).json({
+      message: "Lỗi khi thống kê doanh thu theo danh mục",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   // dashboard
@@ -797,5 +867,6 @@ module.exports = {
 
   // upload
   uploadImage,
-  getTotalRevenue
+  getTotalRevenue,
+  getRevenueByCategory
 };

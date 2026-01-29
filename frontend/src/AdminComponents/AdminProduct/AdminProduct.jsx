@@ -225,6 +225,7 @@ const AdminProduct = () => {
           total,
           showSizeChanger: true,
         }}
+        className="cursor-pointer"
         onRow={(record) => ({
           onClick: () =>
             setModalChild(

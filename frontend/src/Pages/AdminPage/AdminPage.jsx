@@ -4,6 +4,7 @@ import {
   ProductOutlined,
   InfoCircleOutlined,
   BellOutlined,
+  BarChartOutlined
 } from "@ant-design/icons";
 import { Badge, Button, Dropdown, List, Menu } from "antd";
 import { socket } from "../../socket";
@@ -22,6 +23,7 @@ import {
   ROUTES,
   STORAGE_KEYS,
 } from "../../Constants/AdminConstants.ts";
+import AdminRevenueDashboard from "../../AdminComponents/AdminAnalysis/AdminAnalysis.jsx";
 
 const getItem = (label, key, icon, children, type) => ({
   key,
@@ -48,10 +50,15 @@ const MENU_ITEMS = [
     <img src={boxImage} alt="Order" width={14} />
   ),
   getItem(
+    MENU_LABELS[MENU_KEYS.ANALYSIS],
+    MENU_KEYS.ANALYSIS,
+    <BarChartOutlined />
+  ),
+  getItem(
     MENU_LABELS[MENU_KEYS.PROFILE],
     MENU_KEYS.PROFILE,
     <InfoCircleOutlined />
-  ),
+  )
 ];
 
 const Admin = () => {
@@ -95,6 +102,8 @@ const Admin = () => {
         return <AdminOrder />;
       case MENU_KEYS.PROFILE:
         return <AdminProfile />;
+      case MENU_KEYS.ANALYSIS:
+        return <AdminRevenueDashboard />;
       default:
         return null;
     }

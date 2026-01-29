@@ -180,8 +180,15 @@ function Category({ category }) {
             key={page}
             className="grid grid-cols-2 md:grid-cols-4 gap-6 transition-all duration-300"
           >
-            {products.map((p) => (
-              <Item key={p._id} {...p} />
+            {products.map((item) => (
+              <Item
+                id={item._id}
+                name={item.name}
+                image={item.variants[0]?.image}
+                price={item.price}
+                sale={item.sale}
+                rating={item.rating}
+              />
             ))}
           </div>
 

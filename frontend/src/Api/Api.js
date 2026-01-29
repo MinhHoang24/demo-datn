@@ -22,7 +22,30 @@ apiInstance.interceptors.request.use(
 apiInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Error:", error.response || error.message);
+    const status = error?.response?.status;
+    const message = error?.response?.data?.message;
+
+    console.error("API Error:", status, message);
+
+    // ✅ JWT hết hạn / không hợp lệ
+    if (
+      status === 401 &&
+      (
+        message?.toLowerCase().includes("expired") ||
+        message?.toLowerCase().includes("unauthorized")
+      )
+    ) {
+      console.warn("JWT expired → auto logout");
+
+      // clear toàn bộ auth
+      localStorage.clear();
+
+      // tránh redirect loop
+      if (window.location.pathname !== "/login") {
+        window.location.replace("/login");
+      }
+    }
+
     return Promise.reject(error);
   }
 );
@@ -183,6 +206,9 @@ const apiService = {
 
   getAdminTotalRevenue: () =>
     apiInstance.get("/admin/revenue/total"),
+
+  getAdminRevenueByCategory: () =>
+    apiInstance.get("/admin/revenue/by-category"),
 };
 
 export default apiService;
