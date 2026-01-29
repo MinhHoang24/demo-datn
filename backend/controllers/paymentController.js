@@ -303,18 +303,13 @@ const vnpayReturn = async (req, res) => {
 
     const txnRef = params.vnp_TxnRef;
 
-    // 🔥 DEV MODE: TẠO ORDER TẠI RETURN NẾU IPN KHÔNG CHẠY
-    if (
-      process.env.NODE_ENV !== "production" &&
-      params.vnp_ResponseCode === "00"
-    ) {
+    if (params.vnp_ResponseCode === "00") {
       const ps = await PaymentSession.findOne({ txnRef });
 
       if (ps && ps.status !== PAYMENT_SESSION_STATUS.SUCCESS) {
-        // ❗ GỌI LẠI LOGIC TẠO ORDER (TÁI SỬ DỤNG IPN)
         await vnpayIPN(
           { query: { ...req.query } },
-          { json: () => {} } // fake response
+          { json: () => {} }
         );
       }
     }
