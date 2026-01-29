@@ -138,16 +138,20 @@ export default function CheckoutPage() {
         let res;
 
         if (checkoutMode === "buy-now") {
-          res = await apiService.checkoutBuyNowOnline({
+          res = await apiService.createVNPayBuyNowPayment({
             items: items.map((it) => ({
               productId: it.product?._id || it.productId,
               color: it.color,
               quantity: it.quantity,
             })),
             receiver,
+            source: "buy-now",
           });
         } else {
-          res = await apiService.checkoutCartOnline(receiver);
+          res = await apiService.createVNPayPayment({
+            receiver,
+            source: "cart",
+          });
         }
 
         const paymentUrl = res?.data?.paymentUrl;
